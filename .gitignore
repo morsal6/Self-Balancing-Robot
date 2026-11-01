@@ -1,0 +1,15 @@
+# ESP-IDF
+build/
+managed_components/
+sdkconfig
+sdkconfig.old
+dependencies.lock
+
+# Editors
+.vscode/
+.idea/
+
+# Besturingssysteem
+.DS_Store
+Thumbs.db
+desktop.ini
