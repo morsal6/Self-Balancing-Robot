@@ -1,8 +1,10 @@
-| **[UC03] Automatisch balanceren** | |
+| **[UC03] Balansgegevens versturen** | |
 | :--- | :--- |
-| **Doel** | De robot met behulp van de MPU6050, de PID-regelaar en de motoren rechtop houden. |
-| **Beschrijving** | De ESP32-S3 gebruikt meetwaarden van de MPU6050 en een PID-regelaar om de motoren aan te sturen en de robot in balans te houden. |
-| **Pre-condities** | De ESP32-S3 en motorvoeding zijn ingeschakeld. De MPU6050 is geïnitialiseerd en levert geldige meetwaarden. |
-| **Scenario** | 1. De ESP32-S3 leest de MPU6050 uit.<br>2. De ESP32-S3 bepaalt de gemeten hellingshoek.<br>3. De PID-regelaar vergelijkt de gemeten hoek met de gewenste balanshoek.<br>4. De PID-regelaar berekent de benodigde motorsturing.<br>5. De ESP32-S3 stuurt de motoren aan via de H-brug.<br>6. De ESP32-S3 herhaalt deze stappen zolang de balansregeling actief is. |
-| **Post-condities** | De motoren worden aangestuurd om de robot rechtop te houden. |
-| **Uitzonderingen** | • **Ongeldige of ontbrekende sensordata:** De ESP32-S3 stopt de motorsturing. |
+| **Actor** | Gebruiker (indirect, via UC01) |
+| **Doel** | De CYD voorzien van actuele balansgegevens voor het gezicht en de statistieken. |
+| **Beschrijving** | De balansgegevens worden regelmatig draadloos verstuurd, vanaf het opstarten van de robot. |
+| **Pre-condities** | Opstarten (UC01) heeft het versturen gestart (UC01, stap 2). |
+| **Scenario** | 1. De balansgegevens worden samengesteld uit de actuele hellingshoek, de mate van schommelen, de status en de statistieken.<br>2. De balansgegevens worden draadloos verstuurd.<br>3. Na een korte, vaste tijd wordt verdergegaan bij stap 1. |
+| **Invariant** | Het versturen heeft altijd lagere voorrang dan het balanceren en vertraagt het balanceren nooit. Tijdens opstarten of een sensorfout bevat het bericht alleen de status (OPSTARTEN of FOUT) en de statistieken. |
+| **Post-condities** | Er is een bericht verstuurd, ongeacht of de CYD het heeft ontvangen. |
+| **Uitzonderingen** | • **CYD uitgeschakeld of buiten bereik:** versturen mislukt, maar het balanceren gaat ongestoord door. Er blijven berichten worden verstuurd, zodat de CYD direct meedoet zodra hij weer aanstaat. |

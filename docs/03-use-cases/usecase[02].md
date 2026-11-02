@@ -1,8 +1,11 @@
-| **[UC02] Robotonderdeel inschakelen** | |
+| **[UC02] Balanceren** | |
 | :--- | :--- |
-| **Doel** | De robotonderdelen inschakelen, zodat de balansregeling automatisch kan starten en de CYD balansinformatie kan tonen. |
-| **Beschrijving** | De gebruiker schakelt de robotonderdelen afzonderlijk in met hun eigen schakelaar. |
-| **Pre-condities** | De benodigde batterijen zijn aangesloten en de schakelaars van de betreffende onderdelen staan uit. |
-| **Scenario** | 1. De gebruiker schakelt de ESP32-S3 en de motorvoeding in.<br>2. De ESP32-S3 start op en initialiseert de MPU6050 en de motorsturing.<br>3. De ESP32-S3 controleert of de MPU6050 geldige meetwaarden levert.<br>4. Als de sensor gereed is, start de balansregeling automatisch.<br>5. De gebruiker kan de CYD afzonderlijk inschakelen.<br>6. De CYD start op en probeert via ESP-NOW verbinding te maken met de ESP32-S3. |
-| **Post-condities** | De ESP32-S3 balanceert automatisch als de sensor en motorsturing gereed zijn. De CYD kan afzonderlijk verbinding maken en balansinformatie ontvangen. |
-| **Uitzonderingen** | • **MPU6050 niet beschikbaar:** De motoren blijven uitgeschakeld en de balansregeling start niet.<br>• **CYD uitgeschakeld of niet verbonden:** De ESP32-S3 blijft zelfstandig balanceren.<br>• **Lage acculading:** De acculading wordt niet gemeten. Daardoor kan de gebruiker geen accupercentage zien en wordt starten niet op basis van een gemeten acculading geweigerd. |
+| **Actor** | Gebruiker |
+| **Doel** | De robot rechtop houden. |
+| **Beschrijving** | De hellingshoek wordt voortdurend gemeten en de wielen draaien zo dat de robot onder zijn zwaartepunt blijft. |
+| **Pre-condities** | Opstarten (UC01) is voltooid: de sensor levert geldige metingen en de robot staat rechtop. |
+| **Scenario** | 1. De huidige balanstijd begint te lopen (zie UC06).<br>2. De hellingshoek wordt gemeten.<br>3. De afwijking ten opzichte van de gewenste hoek (rechtop) wordt bepaald.<br>4. Op basis van de grootte van de afwijking, de snelheid waarmee de afwijking verandert en de tijd dat de afwijking aanhoudt, wordt bepaald hoe snel en in welke richting de wielen draaien.<br>5. De wielen draaien volgens die bepaling, zodat de afwijking kleiner wordt.<br>6. Ga verder bij stap 2. |
+| **Extension points** | Hellingshoek buiten de veilige grens: Omvallen afhandelen (UC04) |
+| **Invariant** | Stappen 2 tot en met 6 worden continu herhaald met vaste, korte tussenpozen. Het balanceren wordt nooit vertraagd door andere activiteiten, zoals het versturen van gegevens of het bijhouden van statistieken. |
+| **Post-condities** | Het balanceren stopt alleen bij omvallen (UC04) of bij een sensorfout. De wielen staan dan stil. |
+| **Uitzonderingen** | • **Sensor levert ongeldige of geen metingen:** de wielen stoppen en de status FOUT wordt verstuurd. Zodra de sensor weer geldige metingen levert en de robot rechtop wordt gehouden, start het balanceren automatisch opnieuw (UC01, stap 5 en 6). De huidige balanstijd stopt, maar het aantal keer omgevallen neemt niet toe. |
