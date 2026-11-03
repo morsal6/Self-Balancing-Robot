@@ -1,0 +1,9 @@
+| **[UC-S3-02] Balanceren** | |
+| :--- | :--- |
+| **Actor** | MPU6050, ZK5AD, TT130-motoren |
+| **Beschrijving** | Tijdens iedere regelcyclus worden de accelerometer- en gyroscoopmetingen verwerkt tot een balanswaarde. De PID-regeling gebruikt de afwijking ten opzichte van het nulpunt om de linker- en rechtermotor aan te sturen en de robot rechtop te houden. |
+| **Pre-condities** | De initialisatie (UC-S3-01) is succesvol afgerond. De MPU6050 levert geldige metingen. De motorvoedingsschakelaar is ingeschakeld, zodat de ZK5AD vermogensspanning ontvangt. |
+| **Scenario** | 1. De actuele accelerometer- en gyroscoopmetingen worden uitgelezen.<br>2. De metingen worden gefilterd en gecombineerd tot een balanswaarde.<br>3. De afwijking ten opzichte van het nulpunt wordt bepaald.<br>4. De proportionele, integrale en differentiële PID-componenten worden berekend.<br>5. De componenten worden gecombineerd tot een correctiecommando.<br>6. Het correctiecommando wordt begrensd tot het toegestane bereik.<br>7. De richting en snelheid van de linker- en rechtermotor worden bepaald.<br>8. De ZK5AD stuurt de TT130-motoren aan.<br>9. De stappen worden periodiek herhaald zolang de besturing en motorvoeding actief zijn. |
+| **Invariant** | De PID-uitgang en de motorcommando's blijven binnen de ingestelde veiligheidsgrenzen. |
+| **Post-condities** | De motoren voeren het meest recente geldige correctiecommando uit. |
+| **Uitzonderingen** | • **Een sensorwaarde is ongeldig:** er wordt geen nieuwe correctie toegepast en de fouttoestand (UC-S3-04) wordt gestart.<br>• **De robot helt verder dan de maximale regelbare hoek:** de motoruitgang wordt begrensd en de toestand wordt als sterk uit balans doorgegeven aan UC-S3-03.<br>• **De motorvoeding wordt uitgeschakeld:** de ZK5AD en de motorvermogenszijde vallen spanningsloos; de balansgegevens blijven, zolang de ESP32-S3 actief is, aan UC-S3-03 beschikbaar. |

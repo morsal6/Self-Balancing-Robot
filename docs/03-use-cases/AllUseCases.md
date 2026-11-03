@@ -1,130 +1,106 @@
-# Use Cases – Zelfbalancerende robot
+# Usecasebeschrijvingen zelfbalancerende robot
 
-Systeemgrens: **Zelfbalancerende robot** (twee subsystemen: de besturing van sensor en motoren, en de CYD voor gezicht en scoreboard).
-Actor: **Gebruiker** (menselijke actor, buiten de systeemgrens).
+De robot bestaat uit twee afzonderlijke subsystemen:
 
+- De **ESP32-S3 Super Mini** leest de MPU6050 uit, voert de PID-regeling uit en
+  stuurt via de ZK5AD-h-brug de twee TT130-motoren aan.
+- De **CYD ESP32** ontvangt balansgegevens via ESP-NOW en toont een gezicht met
+  expressieve ogen en onderaan een scoreboard.
 
-| **[UC01] Opstarten** | |
+Er zijn drie afzonderlijke voedingsschakelaars. De ESP32-S3-schakelaar voedt
+de ESP32-S3 en de MPU6050. De CYD-schakelaar voedt alleen de CYD. De
+motorvoedingsschakelaar voedt alleen de vermogenszijde van de ZK5AD-h-brug.
+De voedingsschakelaars zijn geen softwarematige start-, stop- of noodstopfunctie.
+
+## ESP32-S3 Super Mini
+
+| **[UC-S3-01] Initialiseren** | |
 | :--- | :--- |
-| **Actor** | Gebruiker |
-| **Doel** | De robot gereed maken, zodat het balanceren veilig en automatisch kan starten. |
-| **Beschrijving** | Na het inschakelen van de voeding wordt de sensor gestart en gekalibreerd. Het balanceren start zodra de gebruiker de robot rechtop houdt. |
-| **Pre-condities** | De voeding van de besturing en de motorvoeding zijn ingeschakeld (elk met een eigen schakelaar). |
-| **Scenario** | 1. De sensor en de motorsturing worden gestart. De wielen blijven stilstaan.<br>2. Het periodiek versturen van balansgegevens (UC03) start.<br>3. Er wordt gecontroleerd of de sensor geldige metingen levert.<br>4. Zodra de robot stilstaat, wordt het nulpunt van de sensor bepaald (kalibratie).<br>5. Er wordt gewacht tot de gebruiker de robot rechtop houdt: de hellingshoek blijft een korte, vaste tijd binnen de startgrens.<br>6. Het balanceren (UC02) start automatisch. |
-| **Invariant** | Zolang het opstarten niet is voltooid, blijven de wielen stilstaan. |
-| **Post-condities** | Balanceren (UC02) is actief en de balansgegevens worden periodiek verstuurd (UC03). |
-| **Uitzonderingen** | • **Sensor reageert niet of levert ongeldige metingen:** de wielen blijven stilstaan en de status FOUT wordt verstuurd. Na korte tijd wordt de controle van stap 3 opnieuw uitgevoerd, totdat de sensor weer geldige metingen levert.<br>• **Robot beweegt tijdens de kalibratie:** de kalibratie wordt afgebroken en opnieuw uitgevoerd zodra de robot stilstaat. |
+| **Actor** | Gebruiker, MPU6050, ZK5AD |
+| **Beschrijving** | Na het inschakelen van de ESP32-S3-voeding worden de sensor, de motoruitgangen en de balansregeling gereedgemaakt. De motoren blijven stilstaan totdat geldige metingen beschikbaar zijn en het nulpunt is bepaald. |
+| **Pre-condities** | De ESP32-S3-voeding is ingeschakeld. Hierdoor zijn de ESP32-S3 en de MPU6050 actief. De robot staat voldoende stil om te kunnen kalibreren. De motorvoeding hoeft nog niet ingeschakeld te zijn. |
+| **Scenario** | 1. De ESP32-S3 start de software.<br>2. De communicatie met de MPU6050 wordt gestart.<br>3. De motoruitgangen worden geïnitialiseerd met een nulcommando.<br>4. Er wordt gecontroleerd of de MPU6050 geldige metingen levert.<br>5. Zodra de robot stil genoeg staat, wordt het nulpunt van de balansmeting bepaald.<br>6. De PID-regeling wordt geïnitialiseerd met de ingestelde parameters.<br>7. De balansregeling (UC-S3-02) wordt gestart. |
+| **Invariant** | Zolang de initialisatie niet is voltooid, blijven de motorcommando's nul. |
+| **Post-condities** | De ESP32-S3 beschikt over een geldig sensorreferentiepunt en kan de balansregeling uitvoeren. |
+| **Uitzonderingen** | • **De MPU6050 reageert niet of levert ongeldige metingen:** de motorcommando's blijven nul en de fouttoestand (UC-S3-04) wordt gestart.<br>• **De robot beweegt tijdens de kalibratie:** de kalibratie wordt afgebroken en opnieuw uitgevoerd zodra de robot stil genoeg staat.<br>• **De motoruitgangen kunnen niet veilig worden geïnitialiseerd:** de motorcommando's blijven nul en de fouttoestand (UC-S3-04) wordt gestart. |
 
-| **[UC02] Balanceren** | |
+| **[UC-S3-02] Balanceren** | |
 | :--- | :--- |
-| **Actor** | Gebruiker |
-| **Doel** | De robot rechtop houden. |
-| **Beschrijving** | De hellingshoek wordt voortdurend gemeten en de wielen draaien zo dat de robot onder zijn zwaartepunt blijft. |
-| **Pre-condities** | Opstarten (UC01) is voltooid: de sensor levert geldige metingen en de robot staat rechtop. |
-| **Scenario** | 1. De huidige balanstijd begint te lopen (zie UC06).<br>2. De hellingshoek wordt gemeten.<br>3. De afwijking ten opzichte van de gewenste hoek (rechtop) wordt bepaald.<br>4. Op basis van de grootte van de afwijking, de snelheid waarmee de afwijking verandert en de tijd dat de afwijking aanhoudt, wordt bepaald hoe snel en in welke richting de wielen draaien.<br>5. De wielen draaien volgens die bepaling, zodat de afwijking kleiner wordt.<br>6. Ga verder bij stap 2. |
-| **Extension points** | Hellingshoek buiten de veilige grens: Omvallen afhandelen (UC04) |
-| **Invariant** | Stappen 2 tot en met 6 worden continu herhaald met vaste, korte tussenpozen. Het balanceren wordt nooit vertraagd door andere activiteiten, zoals het versturen van gegevens of het bijhouden van statistieken. |
-| **Post-condities** | Het balanceren stopt alleen bij omvallen (UC04) of bij een sensorfout. De wielen staan dan stil. |
-| **Uitzonderingen** | • **Sensor levert ongeldige of geen metingen:** de wielen stoppen en de status FOUT wordt verstuurd. Zodra de sensor weer geldige metingen levert en de robot rechtop wordt gehouden, start het balanceren automatisch opnieuw (UC01, stap 5 en 6). De huidige balanstijd stopt, maar het aantal keer omgevallen neemt niet toe. |
+| **Actor** | MPU6050, ZK5AD, TT130-motoren |
+| **Beschrijving** | Tijdens iedere regelcyclus worden de accelerometer- en gyroscoopmetingen verwerkt tot een balanswaarde. De PID-regeling gebruikt de afwijking ten opzichte van het nulpunt om de linker- en rechtermotor aan te sturen en de robot rechtop te houden. |
+| **Pre-condities** | De initialisatie (UC-S3-01) is succesvol afgerond. De MPU6050 levert geldige metingen. De motorvoedingsschakelaar is ingeschakeld, zodat de ZK5AD vermogensspanning ontvangt. |
+| **Scenario** | 1. De actuele accelerometer- en gyroscoopmetingen worden uitgelezen.<br>2. De metingen worden gefilterd en gecombineerd tot een balanswaarde.<br>3. De afwijking ten opzichte van het nulpunt wordt bepaald.<br>4. De proportionele, integrale en differentiële PID-componenten worden berekend.<br>5. De componenten worden gecombineerd tot een correctiecommando.<br>6. Het correctiecommando wordt begrensd tot het toegestane bereik.<br>7. De richting en snelheid van de linker- en rechtermotor worden bepaald.<br>8. De ZK5AD stuurt de TT130-motoren aan.<br>9. De stappen worden periodiek herhaald zolang de besturing en motorvoeding actief zijn. |
+| **Invariant** | De PID-uitgang en de motorcommando's blijven binnen de ingestelde veiligheidsgrenzen. |
+| **Post-condities** | De motoren voeren het meest recente geldige correctiecommando uit. |
+| **Uitzonderingen** | • **Een sensorwaarde is ongeldig:** er wordt geen nieuwe correctie toegepast en de fouttoestand (UC-S3-04) wordt gestart.<br>• **De robot helt verder dan de maximale regelbare hoek:** de motoruitgang wordt begrensd en de toestand wordt als sterk uit balans doorgegeven aan UC-S3-03.<br>• **De motorvoeding wordt uitgeschakeld:** de ZK5AD en de motorvermogenszijde vallen spanningsloos; de balansgegevens blijven, zolang de ESP32-S3 actief is, aan UC-S3-03 beschikbaar. |
 
-| **[UC03] Balansgegevens versturen** | |
+| **[UC-S3-03] Versturen** | |
 | :--- | :--- |
-| **Actor** | Gebruiker (indirect, via UC01) |
-| **Doel** | De CYD voorzien van actuele balansgegevens voor het gezicht en de statistieken. |
-| **Beschrijving** | De balansgegevens worden regelmatig draadloos verstuurd, vanaf het opstarten van de robot. |
-| **Pre-condities** | Opstarten (UC01) heeft het versturen gestart (UC01, stap 2). |
-| **Scenario** | 1. De balansgegevens worden samengesteld uit de actuele hellingshoek, de mate van schommelen, de status en de statistieken.<br>2. De balansgegevens worden draadloos verstuurd.<br>3. Na een korte, vaste tijd wordt verdergegaan bij stap 1. |
-| **Invariant** | Het versturen heeft altijd lagere voorrang dan het balanceren en vertraagt het balanceren nooit. Tijdens opstarten of een sensorfout bevat het bericht alleen de status (OPSTARTEN of FOUT) en de statistieken. |
-| **Post-condities** | Er is een bericht verstuurd, ongeacht of de CYD het heeft ontvangen. |
-| **Uitzonderingen** | • **CYD uitgeschakeld of buiten bereik:** versturen mislukt, maar het balanceren gaat ongestoord door. Er blijven berichten worden verstuurd, zodat de CYD direct meedoet zodra hij weer aanstaat. |
+| **Actor** | CYD ESP32 via ESP-NOW |
+| **Beschrijving** | De actuele balansafwijking, bewegingsrichting en relevante toestand worden periodiek via ESP-NOW naar de CYD ESP32 gestuurd. De gegevens worden gebruikt voor de gezichtsexpressie en het scoreboard. |
+| **Pre-condities** | De ESP32-S3 beschikt over actuele balansinformatie. De ESP-NOW-communicatie is geconfigureerd. |
+| **Scenario** | 1. De actuele balanswaarde wordt gelezen.<br>2. De balanswaarde, bewegingsrichting en status worden in een bericht geplaatst.<br>3. Een volgnummer of tijdsindicatie wordt aan het bericht toegevoegd.<br>4. Het bericht wordt via ESP-NOW verzonden.<br>5. De CYD ESP32 controleert het bericht.<br>6. Een geldig bericht wordt beschikbaar gemaakt voor UC-CYD-01 en UC-CYD-02.<br>7. De verzending wordt periodiek herhaald. |
+| **Invariant** | Een storing in ESP-NOW blokkeert de balansregeling en motorsturing niet. |
+| **Post-condities** | De CYD ESP32 beschikt over nieuwe geldige balansgegevens, of kan vaststellen dat er geen actuele gegevens zijn. |
+| **Uitzonderingen** | • **De CYD ESP32 is niet bereikbaar:** de ESP32-S3 blijft zelfstandig balanceren en probeert bij de volgende cyclus opnieuw te verzenden.<br>• **Het bericht kan niet worden verzonden:** de balansregeling blijft actief en de verzendfout wordt niet als een geldig ontvangstbericht behandeld. |
 
-| **[UC04] Omvallen afhandelen** | |
+| **[UC-S3-04] Fouttoestand afhandelen** | |
 | :--- | :--- |
-| **Actor** | Gebruiker (indirect, via UC02) |
-| **Doel** | Voorkomen dat de wielen blijven draaien als de robot omvalt, en de robot klaarzetten voor een nieuwe poging. |
-| **Beschrijving** | Zodra de hellingshoek buiten de veilige grens komt, stoppen de wielen. Zodra de gebruiker de robot weer rechtop houdt, start het balanceren automatisch opnieuw. |
-| **Pre-condities** | Balanceren (UC02) is actief. |
-| **Scenario** | 1. Zodra de hellingshoek buiten de veilige grens komt, stoppen de wielen.<br>2. De status wordt OMGEVALLEN.<br>3. Het omvallen wordt verwerkt in de statistieken (zie UC06).<br>4. Er wordt gewacht tot de gebruiker de robot weer rechtop houdt: de hellingshoek blijft een korte, vaste tijd binnen de startgrens.<br>5. Het balanceren (UC02) start automatisch opnieuw. |
-| **Invariant** | Totdat het balanceren opnieuw start (stap 5), blijven de wielen stilstaan, ook als de hellingshoek intussen weer binnen de veilige grens komt. |
-| **Post-condities** | Het balanceren (UC02) is opnieuw actief, met een huidige balanstijd die weer bij nul begint. |
-| **Uitzonderingen** | Geen. Omvallen is in deze use case het normale scenario. |
+| **Actor** | MPU6050, ZK5AD, ESP32-S3 |
+| **Beschrijving** | Wanneer sensorwaarden, regelberekeningen of motoruitgangen niet betrouwbaar zijn, worden de motorcommando's naar de veilige waarde gebracht. De fouttoestand wordt, als dat mogelijk is, naar de CYD ESP32 gestuurd. |
+| **Pre-condities** | De ESP32-S3 is gestart of probeert te starten. |
+| **Scenario** | 1. Een sensor-, initialisatie- of regelingsfout wordt vastgesteld.<br>2. De balansinformatie wordt als ongeldig gemarkeerd.<br>3. Beide motorcommando's worden op nul of op de vooraf bepaalde veilige waarde gezet.<br>4. De foutstatus wordt via UC-S3-03 naar de CYD ESP32 gestuurd.<br>5. De fouttoestand blijft actief totdat de ESP32-S3 opnieuw wordt opgestart. |
+| **Invariant** | Ongeldige meetdata wordt nooit als geldige balanswaarde gebruikt. |
+| **Post-condities** | De motoren worden niet meer aangestuurd met onbetrouwbare regeldata. |
+| **Uitzonderingen** | • **De communicatielink naar de CYD ESP32 werkt niet:** de motoruitgangen blijven veilig en de fouttoestand blijft actief.<br>• **Meerdere fouten ontstaan tegelijk:** de foutreactie met het grootste veiligheidsrisico heeft voorrang. |
 
-| **[UC05] Gezichtsuitdrukking tonen** | |
+## CYD ESP32
+
+| **[UC-CYD-01] Tonen** | |
 | :--- | :--- |
-| **Actor** | Gebruiker (kijkt naar de CYD) |
-| **Doel** | De balansstatus van de robot zichtbaar maken met een passend gezicht. |
-| **Beschrijving** | Het gezicht (ogen en expressie) laat zien hoe stabiel de robot balanceert, op basis van de ontvangen balansgegevens. |
-| **Pre-condities** | De CYD is ingeschakeld (eigen schakelaar). |
-| **Scenario** | 1. Een neutraal gezicht wordt getoond (algemene expressie).<br>2. Het tonen van de balansstatistieken (UC07) start.<br>3. Er wordt gewacht op nieuwe balansgegevens.<br>4. Er wordt gecontroleerd of de balansgegevens geldig zijn (volledig en niet verouderd).<br>5. De expressie wordt bepaald volgens de expressietabel hieronder.<br>6. Het gezicht gaat vloeiend over naar die expressie.<br>7. Ga verder bij stap 3. |
-| **Expressietabel** | • **Status OPSTARTEN:** wakker wordende ogen (half dicht, knipperend).<br>• **Status BALANCEREN, rustig (kleine hellingshoek, weinig schommelen):** blije, rustige ogen.<br>• **Status BALANCEREN, matig schommelen:** alerte ogen die kijken in de richting waarheen de robot helt.<br>• **Status BALANCEREN, sterk schommelen of dicht bij de veilige grens:** grote, bange ogen.<br>• **Status OMGEVALLEN:** gesloten ogen of kruisjes als ogen.<br>• **Status FOUT:** verward gezicht.<br>• **Geen geldige of verouderde gegevens:** neutraal gezicht (algemene expressie). |
-| **Invariant** | De ogen knipperen met onregelmatige tussenpozen, onafhankelijk van binnenkomende gegevens, zodat het gezicht levend blijft. |
-| **Post-condities** | Het gezicht toont de expressie die hoort bij de laatst ontvangen geldige balansgegevens. |
-| **Uitzonderingen** | • **Ongeldig of onvolledig bericht:** het bericht wordt genegeerd. De vorige expressie blijft zichtbaar totdat de gegevens verouderd zijn.<br>• **Geen recente balansgegevens (verouderd):** het neutrale gezicht wordt getoond. Zodra weer een geldig bericht binnenkomt, wordt de normale werking hervat. |
+| **Actor** | ESP32-S3 via ESP-NOW, gebruiker |
+| **Beschrijving** | De CYD ESP32 ontvangt geldige balansgegevens en vertaalt de balansafwijking en bewegingsrichting naar expressieve ogen en een gezicht. |
+| **Pre-condities** | De CYD-voeding is ingeschakeld met de eigen schakelaar. Het scherm en de ESP-NOW-ontvanger zijn geïnitialiseerd. |
+| **Scenario** | 1. Een ESP-NOW-bericht wordt ontvangen.<br>2. Het formaat, de bron en de geldigheid van het bericht worden gecontroleerd.<br>3. De balansafwijking en bewegingsrichting worden gelezen.<br>4. Een gezichtsexpressie wordt gekozen die bij de robotbeweging past.<br>5. De positie, richting of vorm van de ogen wordt aangepast.<br>6. Het gezicht wordt op het scherm getekend.<br>7. De nieuwe balansgegevens worden doorgegeven aan UC-CYD-02.<br>8. De weergave wordt bij nieuwe geldige berichten bijgewerkt. |
+| **Invariant** | De gezichtsexpressie is gebaseerd op het laatst ontvangen geldige bericht. |
+| **Post-condities** | Het scherm toont een gezicht dat de laatst bekende bewegingstoestand van de robot weergeeft. |
+| **Uitzonderingen** | • **Het bericht is ongeldig of verouderd:** het bericht wordt genegeerd en de vorige geldige toestand blijft behouden totdat de communicatietimeout verstrijkt.<br>• **De balanswaarde valt buiten het expressiebereik:** de waarde wordt begrensd tot de beschikbare gezichtstoestanden.<br>• **Er is geen geldig bericht binnen de timeout:** een communicatieverlies-expressie wordt getoond. |
 
-| **[UC06] Balansstatistieken bijhouden** | |
+| **[UC-CYD-02] Score bijhouden** | |
 | :--- | :--- |
-| **Actor** | Gebruiker (indirect, via UC02) |
-| **Doel** | Een scoreboard bijhouden van hoe goed de robot balanceert. |
-| **Beschrijving** | De huidige balanstijd, het record en het aantal keer omgevallen worden bijgehouden tijdens het balanceren. |
-| **Pre-condities** | Balanceren (UC02) start of is actief. |
-| **Scenario** | 1. Zodra het balanceren begint, loopt de huidige balanstijd vanaf nul.<br>2. Zodra de robot omvalt (UC04), stopt de huidige balanstijd en neemt het aantal keer omgevallen met één toe.<br>3. Als de gestopte balanstijd langer is dan het record, wordt die tijd het nieuwe record. Alleen dan wordt het record bewaard, nadat de wielen stilstaan.<br>4. Bij het volgende balanceren begint de huidige balanstijd weer bij nul. |
-| **Invariant** | Het record blijft behouden na het uitschakelen. De huidige balanstijd en het aantal keer omgevallen beginnen bij elke start van de robot weer op nul. De statistieken zijn onderdeel van elk verstuurd bericht (UC03). |
-| **Post-condities** | De statistieken zijn actueel. |
-| **Uitzonderingen** | • **Bewaren van het record mislukt:** het record blijft in het werkgeheugen staan tot het uitschakelen. Het balanceren gaat ongestoord door.<br>• **Balanceren stopt door een sensorfout:** de huidige balanstijd stopt, maar het aantal keer omgevallen neemt niet toe en het record wordt niet bijgewerkt. |
+| **Actor** | ESP32-S3 via ESP-NOW, gebruiker |
+| **Beschrijving** | De CYD ESP32 verhoogt een scoreboard op basis van de absolute balansafwijking en de tijd waarin de robot buiten de balansgrens blijft. De actuele score wordt onderaan het scherm getoond. |
+| **Pre-condities** | De CYD-voeding is ingeschakeld en er is een geldig balansbericht ontvangen. De score is voor de huidige voedingssessie geïnitialiseerd. |
+| **Scenario** | 1. De actuele balansafwijking wordt gelezen.<br>2. Er wordt gecontroleerd of de afwijking groter is dan de ingestelde balansgrens.<br>3. De scorebijdrage wordt berekend op basis van de afwijking en de verstreken tijd.<br>4. De score wordt verhoogd wanneer de robot uit balans is.<br>5. De score wordt onderaan het scherm getoond.<br>6. De score blijft bewaard zolang de CYD ingeschakeld blijft. |
+| **Invariant** | De score kan tijdens één voedingssessie alleen gelijk blijven of toenemen. |
+| **Post-condities** | Het scoreboard toont de cumulatieve score van de huidige voedingssessie. |
+| **Uitzonderingen** | • **Er is geen geldig balansbericht:** de score wordt niet verhoogd op basis van ontbrekende data.<br>• **De maximale score is bereikt:** de score blijft op de maximale waarde staan.<br>• **De CYD wordt uitgeschakeld en opnieuw ingeschakeld:** de score wordt opnieuw geïnitialiseerd. |
 
-| **[UC07] Balansstatistieken tonen** | |
+| **[UC-CYD-03] Communicatieverlies tonen** | |
 | :--- | :--- |
-| **Actor** | Gebruiker (kijkt naar de CYD, indirect via UC05) |
-| **Doel** | Het scoreboard zichtbaar maken naast het gezicht. |
-| **Beschrijving** | De huidige balanstijd, het record en het aantal keer omgevallen staan op een vaste plek op het scherm, onder het gezicht. |
-| **Pre-condities** | Gezichtsuitdrukking tonen (UC05) is actief. |
-| **Scenario** | 1. De statistieken uit de ontvangen balansgegevens worden gelezen.<br>2. De huidige balanstijd, het record en het aantal keer omgevallen worden op de vaste plek getoond.<br>3. Als het record verbroken is, wordt dat kort gemarkeerd (bijvoorbeeld "NIEUW RECORD").<br>4. Bij nieuwe balansgegevens wordt verdergegaan bij stap 1. |
-| **Invariant** | Het tonen van de statistieken verstoort de animatie van het gezicht niet. |
-| **Post-condities** | De getoonde statistieken zijn die van de laatst ontvangen geldige balansgegevens. |
-| **Uitzonderingen** | • **Nog geen balansgegevens ontvangen sinds het inschakelen:** op de vaste plek worden streepjes getoond in plaats van waarden.<br>• **Geen recente balansgegevens (verouderd):** de laatst bekende statistieken blijven zichtbaar en worden gemarkeerd als verouderd (bijvoorbeeld grijs). |
+| **Actor** | ESP-NOW-verbinding, gebruiker |
+| **Beschrijving** | Wanneer de CYD ESP32 geen geldig bericht meer ontvangt, maakt het scherm zichtbaar dat de getoonde balansinformatie niet actueel is. |
+| **Pre-condities** | De CYD ESP32 is geïnitialiseerd en wacht op of heeft eerder een geldig bericht ontvangen. |
+| **Scenario** | 1. Er verstrijkt de ingestelde timeout zonder geldig bericht.<br>2. De laatst bekende balansinformatie wordt als niet-actueel gemarkeerd.<br>3. Een communicatieverlies- of wachtindicatie wordt getoond.<br>4. Het scoreboard wordt niet verhoogd zolang geen geldige nieuwe balansinformatie beschikbaar is.<br>5. Bij een nieuw geldig bericht wordt UC-CYD-01 hervat. |
+| **Invariant** | Oude balansdata wordt nooit zonder waarschuwing als actuele data getoond. |
+| **Post-condities** | De gebruiker kan onderscheid maken tussen actuele robotdata en een verbroken verbinding. |
+| **Uitzonderingen** | • **De verbinding wordt hersteld:** de nieuwe geldige balansgegevens worden gebruikt voor de gezichtsexpressie en score.<br>• **De verbinding blijft verbroken:** de wacht- of communicatieverlies-indicatie blijft zichtbaar. |
 
----
+## Relaties tussen de usecases
 
-## Relaties voor het use case diagram
+- UC-S3-01 `include` UC-S3-02.
+- UC-S3-02 `include` UC-S3-03.
+- UC-S3-04 kan optreden als uitzondering tijdens UC-S3-01 en UC-S3-02.
+- UC-CYD-01 `include` UC-CYD-02.
+- UC-CYD-03 `extend` UC-CYD-01 wanneer de communicatietimeout verstrijkt.
 
-| Van | Relatie | Naar | Toelichting |
-| :--- | :--- | :--- | :--- |
-| Gebruiker | associatie | UC01 Opstarten | Top van de hiërarchie. |
-| Gebruiker | associatie | UC05 Gezichtsuitdrukking tonen | Top van de hiërarchie. |
-| UC01 Opstarten | `<<include>>` | UC02 Balanceren | Opstarten leidt altijd tot balanceren. |
-| UC01 Opstarten | `<<include>>` | UC03 Balansgegevens versturen | Het versturen start altijd bij het opstarten en loopt parallel aan het balanceren. Een afwezige CYD is een uitzondering op het versturen, geen reden om het niet uit te voeren. |
-| UC02 Balanceren | `<<include>>` | UC06 Balansstatistieken bijhouden | Statistieken worden altijd bijgehouden. |
-| UC04 Omvallen afhandelen | `<<extend>>` | UC02 Balanceren | Optioneel: alleen bij omvallen. Extension point: buiten veilige grens. |
-| UC05 Gezichtsuitdrukking tonen | `<<include>>` | UC07 Balansstatistieken tonen | Statistieken staan altijd naast het gezicht. |
+## Nog vast te leggen ontwerpwaarden
 
-Pijlrichting: bij `<<include>>` wijst de pijl naar de use case die altijd wordt uitgevoerd. Bij `<<extend>>` wijst de pijl naar de basis-use case.
-
-De Gebruiker is alleen verbonden met de top van de twee hiërarchieën (UC01 en UC05). UC02, UC03, UC04, UC06 en UC07 hebben geen eigen associatie met de actor: die loopt via de hiërarchie. UC03 en UC05 hebben geen use case-relatie met elkaar: ze lopen via een bericht tussen twee subsystemen (proxy-objecten in de object models).
-
----
-
-## Notities voor latere hoofdstukken (horen niet in de use cases zelf)
-
-### Voorgestelde control-objecten (consistente naamgeving voor object model, klassediagram en STD)
-
-| Use case | Control-object | Subsysteem |
-| :--- | :--- | :--- |
-| UC01 Opstarten | OpstartControl | Besturing |
-| UC02 Balanceren | BalanceerControl | Besturing |
-| UC03 Balansgegevens versturen | VerstuurControl (met CydProxy als boundary) | Besturing |
-| UC04 Omvallen afhandelen | OmvalControl | Besturing |
-| UC05 Gezichtsuitdrukking tonen | GezichtControl (met RobotProxy als boundary) | CYD |
-| UC06 Balansstatistieken bijhouden | StatistiekControl | Besturing |
-| UC07 Balansstatistieken tonen | StatistiekWeergaveControl | CYD |
-
-### Bijbehorende requirements (nog uit te werken, waarden zijn voorstellen tot na tuning en testen)
-
-| ID | Naam | Omschrijving |
-| :--- | :--- | :--- |
-| C01 | Aparte voedingsschakelaars | Motoren, besturing en CYD hebben elk een eigen schakelaar (vervangt de vroegere use case Uitschakelen). |
-| C02 | Accu wordt niet gemeten | De acculading wordt niet gemeten. Er is geen accupercentage en geen weigering van starten bij een lage acculading. |
-| NF01 | Regelperiode balanceren | Voorstel: elke 5 tot 10 ms. |
-| NF02 | Verstuurperiode balansgegevens | Voorstel: elke 20 tot 50 ms. |
-| NF03 | Verouderde gegevens | Voorstel: langer dan 500 ms geen geldig bericht. |
-| NF04 | Veilige grens en startgrens | Voorstel: veilige grens ±35°, startgrens ±5°. |
-| NF05 | Stoptijd bij omvallen | Voorstel: de wielen stoppen binnen 50 ms nadat de veilige grens is overschreden. |
+- De MPU6050-balansas en de tekenconventie van de balanswaarde.
+- De PID-parameters en de maximale motoruitgang.
+- De regelperiode en ESP-NOW-verzendfrequentie.
+- De communicatietimeout.
+- De scorefunctie, balansgrens, maximumscore en resetregel.
+- De koppeling tussen balanswaarde en gezichtsexpressie.
+- De veilige motorreactie wanneer de robot buiten het regelbare kantelbereik valt.
+- De laad- en beveiligingsarchitectuur van de in serie gebruikte LiPo-cellen.

@@ -1,0 +1,9 @@
+| **[UC-S3-01] Initialiseren** | |
+| :--- | :--- |
+| **Actor** | Gebruiker, MPU6050, ZK5AD |
+| **Beschrijving** | Na het inschakelen van de ESP32-S3-voeding worden de sensor, de motoruitgangen en de balansregeling gereedgemaakt. De motoren blijven stilstaan totdat geldige metingen beschikbaar zijn en het nulpunt is bepaald. |
+| **Pre-condities** | De ESP32-S3-voeding is ingeschakeld. Hierdoor zijn de ESP32-S3 en de MPU6050 actief. De robot staat voldoende stil om te kunnen kalibreren. De motorvoeding hoeft nog niet ingeschakeld te zijn. |
+| **Scenario** | 1. De ESP32-S3 start de software.<br>2. De communicatie met de MPU6050 wordt gestart.<br>3. De motoruitgangen worden geïnitialiseerd met een nulcommando.<br>4. Er wordt gecontroleerd of de MPU6050 geldige metingen levert.<br>5. Zodra de robot stil genoeg staat, wordt het nulpunt van de balansmeting bepaald.<br>6. De PID-regeling wordt geïnitialiseerd met de ingestelde parameters.<br>7. De balansregeling (UC-S3-02) wordt gestart. |
+| **Invariant** | Zolang de initialisatie niet is voltooid, blijven de motorcommando's nul. |
+| **Post-condities** | De ESP32-S3 beschikt over een geldig sensorreferentiepunt en kan de balansregeling uitvoeren. |
+| **Uitzonderingen** | • **De MPU6050 reageert niet of levert ongeldige metingen:** de motorcommando's blijven nul en de fouttoestand (UC-S3-04) wordt gestart.<br>• **De robot beweegt tijdens de kalibratie:** de kalibratie wordt afgebroken en opnieuw uitgevoerd zodra de robot stil genoeg staat.<br>• **De motoruitgangen kunnen niet veilig worden geïnitialiseerd:** de motorcommando's blijven nul en de fouttoestand (UC-S3-04) wordt gestart. |
