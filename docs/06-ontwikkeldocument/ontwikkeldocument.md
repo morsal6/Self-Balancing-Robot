@@ -127,55 +127,64 @@ schakelaar:
 
 ## Requirements
 
-``leg uit hoe de requirements opgesteld worden door de samenhang te verwoorden van de onderwerpen uit de sub-hoofdstukken.``
+De requirements zijn afgeleid van de usecases.
+De kolom bron geeft aan uit welke usecase de requirement komt. De prioriteit is bepaald met MoSCoW.
+Getallen die zijn gemarkeerd als *(voorlopig)* zijn streefwaarden. De
+definitieve waarden worden na testen vastgelegd.
 
 ### Functionele Requirements
+#### ESP32-S3 Super Mini
 
-``Beschrijf de relevante functionele requirements``
+| **ID** | **Naam** | **Omschrijving** | **Rationale** | **Prioriteit** | **Bron** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| FR-01 | Initialiseren | Na het inschakelen bepaalt de ESP32-S3 het nulpunt van de balansmeting zodra de robot rechtop en stil staat. Tot dat moment blijven de motoren stil. | Zonder nulpunt balanceert de robot schuin. De robot mag niet gaan rijden voordat de regeling klaar is. | Must | UC-S3-01 |
+| FR-02 | Balanceren | De ESP32-S3 berekent uit de MPU6050-metingen een balanswaarde en houdt de robot met een PID-regeling rechtop. Het motorcommando blijft binnen de maximale motoruitgang. | Dit is de kernfunctie van de robot: zonder balansregeling is er geen spel. | Must | UC-S3-02 |
+| FR-03 | Balansverlies detecteren | Ligt de balanswaarde langer dan de bevestigingstijd buiten de balansverliesgrens, dan stelt de ESP32-S3 een balansverlies vast en stopt hij de motoren. | Een balansverlies levert de speler een punt op. Een omgevallen robot met draaiende wielen is onveilig. | Must | UC-S3-03 |
+| FR-04 | Valteller bijhouden | De ESP32-S3 verhoogt bij ieder balansverlies een valteller met precies één. | De valteller is de bron van de score. | Must | UC-S3-03 |
+| FR-05 | Hervatten na balansverlies | Zet de speler de robot rechtop, dan gaat de robot weer balanceren zodra hij binnen de herstartgrens en stil genoeg staat. | Zonder deze functie zou de robot na iedere val opnieuw opgestart moeten worden. | Must | UC-S3-03 |
+| FR-06 | Balansgegevens versturen | De ESP32-S3 verstuurt periodiek via ESP-NOW de balanswaarde, bewegingsrichting, status en valteller naar de CYD. | De CYD heeft deze gegevens nodig voor het gezicht en de score. | Must | UC-S3-04 |
+| FR-07 | Fouttoestand afhandelen | Bij een sensor-, initialisatie- of regelingsfout zet de ESP32-S3 de motoren stil totdat hij opnieuw wordt opgestart. | Met onbetrouwbare meetdata kan de robot niet veilig geregeld worden. | Must | UC-S3-05 |
 
-| Naam                | ``F01 - Houvast``                                       |
-| ------------------- | ------------------------------------------------------- |
-| Omschrijving        |                                                         |
-| Rationale           | ``reden, verband met key driver of parent-requirement`` |
-| Business prioriteit | ``MoSCoW``                                              |
+#### CYD ESP32
 
-``etc..``
+| **ID** | **Naam** | **Omschrijving** | **Rationale** | **Prioriteit** | **Bron** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| FR-08 | Gezichtsexpressie tonen | De CYD toont een gezicht met expressieve ogen. De expressie hangt af van de status en de balansafwijking in het laatst ontvangen geldige bericht. | Het gezicht geeft de robot karakter en laat zien hoe de robot ervoor staat. | Must | UC-CYD-01 |
+| FR-09 | Score bijhouden | De CYD geeft de speler één punt per balansverlies, op basis van de ontvangen valteller. | Dit is de spelregel van de game. | Must | UC-CYD-02 |
+| FR-10 | Score tonen | De CYD toont de score onderaan het scherm, onder het gezicht. | De opdracht vraagt om een lokaal scoreboard op het display. | Must | UC-CYD-02 |
+| FR-11 | Communicatieverlies tonen | Ontvangt de CYD binnen de communicatietimeout geen geldig bericht, dan toont hij dat de gegevens niet actueel zijn. | De speler moet kunnen zien dat het gezicht niet meer klopt. | Should | UC-CYD-03 |
 
 ### Niet-Functionele Requirements
+| **ID** | **Naam** | **Omschrijving** | **Rationale** | **Prioriteit** |
+| :--- | :--- | :--- | :--- | :--- |
+| NFR-01 | Regelfrequentie | De balansregeling draait minimaal op 100 Hz *(voorlopig)*. | Bij een lagere frequentie valt de robot om voordat de correctie effect heeft. | Must |
+| NFR-02 | Onafhankelijke regeling | Een storing in ESP-NOW of de CYD heeft geen invloed op de balansregeling. | De robot moet blijven balanceren, ook als de CYD uit staat. | Must |
+| NFR-03 | Veilige motorstand | Buiten de status `BALANCEREN` zijn de motorcommando's altijd nul. | De robot mag niet rijden tijdens kalibreren, na een val of bij een fout. | Must |
+| NFR-04 | Balanceerduur | Zonder verstoring blijft de robot minimaal 60 seconden rechtop staan *(voorlopig)*. | Valt de robot vanzelf om, dan krijgt de speler een punt zonder te duwen. | Must |
+| NFR-05 | Lichte duw opvangen | Een lichte duw leidt niet tot een balansverlies. | Alleen een harde duw mag een punt opleveren. | Should |
+| NFR-06 | Reactietijd display | Een verandering in status of balans is binnen 200 ms zichtbaar op het scherm *(voorlopig)*. | Anders lijkt het gezicht niet bij de robot te horen. | Should |
 
-``Beschrijf de relevante Niet-Functionele Requirements``
-
-| Naam                | ``NF03 - Betrouwbaarheid``                                                                                                           |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Omschrijving        | ``quantificeerbare of anderszins meetbare omschrijving ``                                                                            |
-| Rationale           | ``reden: wat zou er anders mis gaan?``                                                                                               |
-| Business prioriteit | ``MoSCoW. Deze regel alleen gebruiken bij niet quantificeerbare opdrachtgever-bepaalde ontwerp/realisatie keuzes, anders weglaten.`` |
-
-``etc..``
 
 ### Constraints
-
-``Beschrijf de relevante Constraints``
-
-| Naam         | ``C02 - Jaarlijkse onderhoudskosten``                     |
-| ------------ | --------------------------------------------------------- |
-| Omschrijving | ``quantificeerbare of anderszins meetbare omschrijving `` |
-| Rationale    | ``reden: waarom kan het niet anders?``                    |
+| **ID** | **Constraint** | **Toelichting** |
+| :--- | :--- | :--- |
+| C-01 | De balansregeling draait op een ESP32-S3 Super Mini. | Gegeven hardware. |
+| C-02 | Het gezicht en de score worden getoond op een CYD (Cheap Yellow Display) met ESP32. | Gegeven hardware. |
+| C-03 | De kanteling wordt gemeten met een MPU6050. | Gegeven hardware. |
+| C-04 | De motoren worden aangestuurd via een ZK5AD-dubbele-h-brug. | Gegeven hardware. |
+| C-05 | De aandrijving bestaat uit twee TT130-DC-motoren (3–6 V). | Gegeven hardware. |
+| C-06 | De voeding bestaat uit Li-ion-cellen in battery shells: 4 in variant A, 3 in variant B. Een step-down converter zet de spanning om naar 5 V voor de motoren. | Gekozen hardware per variant. |
+| C-07 | De ESP32-S3 en de CYD communiceren via ESP-NOW. | Beide subsystemen zijn ESP32's; ESP-NOW werkt zonder router of access point. |
+| C-08 | De firmware wordt ontwikkeld met ESP-IDF en draait op FreeRTOS. | Opdracht: de game is gebaseerd op een real-time operating system. |
+| C-09 | Iedere firmware bestaat uit meerdere parallelle taken die uitsluitend via RTOS-synchronisatiemechanismen met elkaar communiceren. | Opdracht (rubric Operating Systems). |
+| C-10 | De code volgt de code-richtlijnen, inclusief Doxygen-commentaar. | Opdracht (rubric Code richtlijnen). |
+| C-11 | De code is in volledige overeenstemming met de klassediagrammen en STD's, ook qua naamgeving. | Opdracht (rubric Structured programming II). |
+| C-12 | Usecases, objectmodellen, klassediagrammen en STD's worden volgens de richtlijnen van HU-ICT-TI gemaakt en zijn onderling consistent. | Opdracht (rubric Structured programming I). |
+| C-13 | Er wordt lokaal een scoreboard bijgehouden en op het display getoond. | Opdracht (rubric Functioneel III). |
+| C-14 | Op te leveren: een zip met alle code, een PDF van dit ontwikkeldocument met alle diagrammen, en een rechtenvrije PR-film van maximaal 60 seconden waarin de gameplay te zien is. | Opdracht. |
 
 ### Use Cases
-
-`` Een of meerdere use case diagram(men) met bijbehorende use case beschrijvingen ``
-
-| Naam           | ``UC04 - Lamp Selecteren``                                                                                                                                                                                                                 |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Actor          | ``gebruiker``                                                                                                                                                                                                                              |
-| Samenvatting   | ``evt. een beschrijving, voor zover de naam het niet al voldoende dekt``                                                                                                                                                                   |
-| Preconditie    | ``alleen voor zover niet triviaal. typisch alleen nodig indien onderdeel van een parent-usecase, bijvoorbeeld "Lamp Selectie Menu" is geselecteerd in het hoofdmenu``                                                                      |
-| Scenario       | ``voorbeeld van een typische volgorde van interacties, bij voorkeur geschreven vanuit het gezichtspunt van het systeem.``                                                                                                                  |
-| Scenario 2     | ``... indien nodig additionele``                                                                                                                                                                                                           |
-| Invariant      | ``Iets waarvoor het systeem voortdurend zorgt, waardoor dat niet steeds herhaald hoeft te worden. (kan soms van toepassing zijn. Bijvoorbeeld: 'ten alle tijde kan "apply" worden geselecteerd om aangepaste eigenschappen op te slaan')`` |
-| Postconditie   | ``alleen voor zover niet triviaal. typisch alleen indien onderdeel van parent-usecase. bijvoorbeeld teruggekeerd naar het parent menu``                                                                                                    |
-| Uitzonderingen | ``alleen als er tijdens het scenario iets gebeurt wat niet in lijn is met de oorspronkelijke bedoeling van de usecase.``                                                                                                                   |
+Zie UC-folder
 
 ### Activity Diagrammen
 
