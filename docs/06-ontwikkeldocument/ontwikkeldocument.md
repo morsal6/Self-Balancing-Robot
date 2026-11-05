@@ -184,7 +184,7 @@ definitieve waarden worden na testen vastgelegd.
 | C-14 | Op te leveren: een zip met alle code, een PDF van dit ontwikkeldocument met alle diagrammen, en een rechtenvrije PR-film van maximaal 60 seconden waarin de gameplay te zien is. | Opdracht. |
 
 ### Use Cases
-Zie UC-folder
+Zie [UC-folder](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/03-use-cases)
 
 ### Activity Diagrammen
 
