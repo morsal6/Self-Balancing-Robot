@@ -6,12 +6,13 @@ Team: Yunus Kocaman en Morsal Ahmadi
 
 ## Inhoudsopgave
 
-- [Ontwikkeldocument Self-Balancing Robot](#ontwikkeldocument-zelfbalancerende-robot)
+- [Ontwikkeldocument Zelfbalancerende Robot](#ontwikkeldocument-zelfbalancerende-robot)
   - [Inhoudsopgave](#inhoudsopgave)
   - [Inleiding](#inleiding)
   - [Leeswijzer](#leeswijzer)
   - [Uitgangspunten](#uitgangspunten)
     - [Systeemcontext](#systeemcontext)
+    - [Gameplay](#gameplay)
     - [Hardwarevarianten](#hardwarevarianten)
   - [Requirements](#requirements)
     - [Functionele Requirements](#functionele-requirements)
@@ -26,38 +27,103 @@ Team: Yunus Kocaman en Morsal Ahmadi
     - [Taakstructurering](#taakstructurering)
       - [Taaksoort en deadline](#taaksoort-en-deadline)
       - [Taken samenvoegen](#taken-samenvoegen)
+      - [Synchronisatiemechanismen](#synchronisatiemechanismen)
     - [Klassediagrammen](#klassediagrammen)
     - [STD's](#stds)
     - [Ontwerpparameters](#ontwerpparameters)
+    - [Traceerbaarheid](#traceerbaarheid)
   - [Realisatie](#realisatie)
     - [Fysieke View](#fysieke-view)
     - [Code](#code)
-    - [Unit Tests](#unit-tests)
-    - [Integratie Tests](#integratie-tests)
+    - [Testen](#testen)
     - [Eindresultaat](#eindresultaat)
-  - [Conclusie en Advies](#conclusie-en-advies)
+  - [Conclusie en Reflectie](#conclusie-en-reflectie)
   - [Appendices](#appendices)
-    - [Appendix 1: Referenties](#appendix-1-referenties)
+    - [Appendix 1: Afstemming gameplay met docent](#appendix-1-afstemming-gameplay-met-docent)
+    - [Appendix 2: Referenties](#appendix-2-referenties)
 
 ## Inleiding
+Dit ontwikkeldocument beschrijft het ontwerp en de realisatie van een zelfbalancerende robot die als game wordt gebruikt. De robot staat op twee wielen en houdt zichzelf rechtop met een PID-regeling. Een MPU6050 meet de kanteling en twee TT130-motoren corrigeren die via een h-brug.
 
-``Van wie komt de opdracht? Waar gaat de opdracht in hoofdlijnen over? Leg verder uit dat dit document bedoeld is om op heldere wijze overzicht en samenhang te geven voor het team tijdens het werken aan het project, en na afloop als overdrachts-document voor eventuele follow-ups.``
+Het spel is eenvoudig uit te leggen: de speler duwt de robot. Verliest de robot door de duw zijn balans, dan krijgt de speler een punt. De robot heeft een gezicht op een Cheap Yellow Display (CYD). De expressie van dat gezicht hangt af van hoe de robot balanceert, en onderaan het scherm staat de score.
+
+De gameplay is bewust eenvoudig gehouden. De uitdaging van dit project zit niet in de spelregels, maar in wat er nodig is om ze mogelijk te maken. Het eerste doel is kennis opdoen over de hardware: het uitlezen en filteren van de MPU6050, het aansturen van DC-motoren via een h-brug, het regelen van de balans met een PID-regelaar en het opzetten van een veilige voeding met Li-ion-cellen. Het belangrijkste doel is het toepassen van de behandelde theorie over FreeRTOS, in combinatie met de CYD. Het meten, regelen, versturen, tekenen en scoren moeten tegelijk en op tijd gebeuren. Dat vraagt om meerdere parallelle taken met elk een eigen periode, deadline en prioriteit, die uitsluitend via RTOS-synchronisatiemechanismen met elkaar communiceren.
+
+Het systeem bestaat uit twee subsystemen die draadloos via ESP-NOW met elkaar communiceren:
+
+de ESP32-S3 Super Mini regelt de balans, stuurt de motoren aan en stelt vast wanneer de robot zijn balans verliest;
+de CYD ESP32 toont het gezicht en houdt de score bij.
+
+De robot is in twee hardwarevarianten gebouwd, die alleen verschillen in het aantal accucellen. De software is voor beide varianten gelijk en wordt geschreven met ESP-IDF, dat FreeRTOS als besturingssysteem gebruikt.
+
+Het doel van dit document is om het ontwerp zo vast te leggen dat de code er direct uit afgeleid kan worden. De usecases, objectmodellen, taakstructurering, klassediagrammen en STD's zijn daarom onderling consistent, ook in naamgeving, en sluiten aan op de code.
 
 ## Leeswijzer
-
-``leg uit wat er in de hoogste-niveau-hoofdstukken wordt behandeld en hoe deze onderwerpen met elkaar in verband staan``
+- Uitgangspunten beschrijft de systeemcontext, de gameplay en de twee hardwarevarianten.
+- Requirements bevat de functionele en niet-functionele requirements met MoSCoW-prioriteit, de constraints, de usecases en de activity diagrammen.
+- Ontwerp werkt de usecases uit tot subsystemen en interfaces, objectmodellen, een taakstructurering met de gebruikte synchronisatiemechanismen, klassediagrammen en STD's. Aan het eind staan de ontwerpparameters en een traceerbaarheidstabel die laat zien hoe usecases, objecten, klassen, taken en code met elkaar samenhangen.
+- Realisatie beschrijft de fysieke opbouw, de code, de tests en het eindresultaat.
+- Conclusie en Reflectie blikt terug op het project en geeft aan wat beter of efficiënter had gekund.
+De appendices bevatten de afstemming van de gameplay met de docent en de referenties.
 
 ## Uitgangspunten
 
-``Leg uit dat dit hoofdstuk de uitgangspunten voor de requirements inventariseert. Verwijs naar een appendix met genoteerde input (verslag van speech, gespreksverslagen) van de opdrachtgever - (de echte, tijdens de kickoff-meeting of diens vervanger (Marius,Bart) erna) ``
-
 ### Systeem Context
+De mindmap hieronder geeft de context van het systeem weer: de gebruiker, de twee subsystemen met hun sensoren en actuatoren, de communicatie en de voeding.
+![systeemcontextMindmap](/media/images/systeemcontext.png)
 
-``Modelleer en beschrijf de Systeem Context – gebruik een systeem context diagram. Onderdelen van binnen je System of Interest horen er niet in thuis. Een decompositie van je systeem ook niet. Zijn er geen belangrijke actoren vergeten? Tip: maak eerst met je team een mindmap (zie appendix)``
+De relaties met de omgeving zijn:
 
-### Identificatie en prioritering van Key Drivers
+| **Externe entiteit** | **Interactie met het systeem** |
+| :--- | :--- |
+| Speler | Duwt de robot, zet hem na een balansverlies rechtop, schakelt de voedingen in en uit en leest het gezicht en de score af. |
+| Ondergrond | De robot balanceert en rijdt op een vlakke ondergrond; de wielen hebben grip nodig om te kunnen corrigeren. |
 
-``Voor semester 3 beperken we ons tot 3 stakeholders: opdrachtgever, klant en gebruiker. Geef middels een tabel een overzicht van de key drivers weer. Belangrijkere key drivers staan hoger in de tabel. Er is ook een kolom die aangeeft voor welke stakeholder het van toepassing is, en een kolom voor omschrijving. Licht de ordening van de key drivers toe in de begeleidende tekst.``
+### Gameplay
+
+1. De speler schakelt de robot in en houdt hem rechtop en stil, zodat de
+   ESP32-S3 het nulpunt kan bepalen. Het gezicht toont een opstart- of
+   wachtexpressie.
+2. De robot gaat zelfstandig balanceren. Het gezicht reageert op de kanteling:
+   hoe verder de robot helt, hoe sterker de expressie.
+3. De speler duwt de robot. Kan de robot de duw opvangen, dan blijft hij staan
+   en levert de duw niets op.
+4. Is de duw zo hard dat de kantelhoek de balansverliesgrens overschrijdt, dan
+   heeft de robot zijn balans verloren. De motoren stoppen, het gezicht toont
+   een gevallen-expressie en de speler krijgt **één punt**.
+5. De speler zet de robot weer rechtop. Zodra de robot stil genoeg staat, gaat
+   hij opnieuw balanceren en kan de volgende ronde beginnen.
+6. De score staat onderaan het scherm en blijft bewaard zolang de CYD aan
+   staat. Na het uit- en weer inschakelen van de CYD begint de score weer bij
+   nul.
+
+### Hardwarevarianten
+Er zijn twee varianten van de robot. Ze verschillen alleen in het aantal Li-ion-cellen. De overige hardware en de software zijn gelijk.
+
+| | **Variant A** | **Variant B** |
+| :--- | :--- | :--- |
+| **Accu** | 4 Li-ion-cellen in battery shells | 3 Li-ion-cellen in battery shells |
+| **Accuspanning (nominaal / vol)** | 14,8 V / 16,8 V | 11,1 V / 12,6 V |
+| **Motorvoeding** | Via step-down converter naar 5 V | Via step-down converter naar 5 V |
+
+Beide varianten gebruiken dezelfde componenten:
+
+| **Component** | **Functie** |
+| :--- | :--- |
+| ESP32-S3 Super Mini | Balansregeling, motoraansturing, detectie van balansverlies, verzenden via ESP-NOW |
+| MPU6050 | Meten van kanteling (accelerometer en gyroscoop) |
+| ZK5AD | Dubbele h-brug voor de twee motoren |
+| 2 × TT130-motor | Aandrijving van de wielen |
+| CYD ESP32 | Tonen van gezicht en score, ontvangen via ESP-NOW |
+| Step-down converter | Omzetten van de accuspanning naar 5 V |
+| 3 schakelaars | Afzonderlijk in- en uitschakelen van de ESP32-S3-voeding, de CYD-voeding en de motorvoeding |
+
+De voeding is functioneel opgedeeld in drie delen, elk met een eigen
+schakelaar:
+
+- de **ESP32-S3-voeding** voedt de ESP32-S3 en de MPU6050;
+- de **CYD-voeding** voedt alleen de CYD;
+- de **motorvoeding** voedt alleen de vermogenszijde van de ZK5AD.
 
 ## Requirements
 
