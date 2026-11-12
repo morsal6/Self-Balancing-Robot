@@ -2,7 +2,7 @@
 | :--- | :--- |
 | **Actor** | ESP32-S3 via ESP-NOW, gebruiker |
 | **Beschrijving** | De CYD ESP32 ontvangt geldige berichten en vertaalt de status, balansafwijking en bewegingsrichting naar expressieve ogen en een gezicht. |
-| **Pre-condities** | De CYD-voeding is ingeschakeld. Het scherm en de ESP-NOW-ontvanger zijn geïnitialiseerd. |
+| **Pre-condities** | De logicavoeding is ingeschakeld. Het scherm en de ESP-NOW-ontvanger zijn geïnitialiseerd. |
 | **Scenario** | 1. Een ESP-NOW-bericht wordt ontvangen.<br>2. Het formaat, de bron en het volgnummer van het bericht worden gecontroleerd.<br>3. De status, balansafwijking en bewegingsrichting worden gelezen.<br>4. Een gezichtsexpressie wordt gekozen:<br>&nbsp;&nbsp;• `KALIBREREN`: opstart- of wachtexpressie;<br>&nbsp;&nbsp;• `BALANCEREN`: expressie die past bij de balansafwijking en bewegingsrichting;<br>&nbsp;&nbsp;• `BALANSVERLIES`: gevallen-expressie;<br>&nbsp;&nbsp;• `FOUT`: foutexpressie.<br>5. De positie, richting of vorm van de ogen wordt aangepast.<br>6. Het gezicht wordt in het bovenste deel van het scherm getekend.<br>7. De valteller en het sessie-ID worden doorgegeven aan UC-CYD-02.<br>8. De weergave wordt bij nieuwe geldige berichten bijgewerkt. |
 | **Invariant** | De gezichtsexpressie is gebaseerd op het laatst ontvangen geldige bericht. |
 | **Post-condities** | Het scherm toont een gezicht dat de laatst bekende toestand van de robot weergeeft. |

@@ -18,22 +18,18 @@ motoren. De speler zet de robot weer rechtop, waarna de robot opnieuw gaat
 balanceren en een volgende ronde kan beginnen. De score staat onderaan het
 scherm van de CYD, het gezicht staat daarboven.
 
-### Hardwarevarianten
+### Voeding
 
-Er zijn twee varianten, die alleen in de hardware verschillen. De software en
-de usecases zijn voor beide varianten gelijk.
+De robot gebruikt 4 Li-ion-cellen, verdeeld over twee afzonderlijke accupacks
+van elk 2 cellen. Iedere accupack heeft een eigen schakelaar:
 
-| | **Variant A** | **Variant B** |
-| :--- | :--- | :--- |
-| **Accu** | 4 Li-ion-cellen in battery shells | 3 Li-ion-cellen in battery shells |
-| **Motorvoeding** | Via step-down converter naar 5 V | Via step-down converter naar 5 V |
+| **Voeding** | **Accupack** | **Omzetting** | **Voedt** |
+| :--- | :--- | :--- | :--- |
+| **Logicavoeding** | 2 Li-ion-cellen | Step-down converter naar 5 V | ESP32-S3, MPU6050 en CYD |
+| **Motorvoeding** | 2 Li-ion-cellen | Step-down converter naar 6 V | Vermogenszijde van de ZK5AD-h-brug (TT130-motoren) |
 
-De voeding is functioneel opgedeeld in drie delen, elk met een eigen
-schakelaar:
-
-- de **ESP32-S3-voeding** voedt de ESP32-S3 en de MPU6050;
-- de **CYD-voeding** voedt alleen de CYD;
-- de **motorvoeding** voedt alleen de vermogenszijde van de ZK5AD-h-brug.
+Doordat de ESP32-S3 en de CYD dezelfde logicavoeding gebruiken, worden ze
+altijd samen in- en uitgeschakeld.
 
 Voedingsschakelaars zijn geen softwarematige start-, stop- of
 noodstopfunctie.
@@ -55,8 +51,8 @@ wordt meegestuurd naar de CYD.
 | **[UC-S3-01] Initialiseren** | |
 | :--- | :--- |
 | **Actor** | Gebruiker, MPU6050, ZK5AD |
-| **Beschrijving** | Na het inschakelen van de ESP32-S3-voeding worden de sensor, de motoruitgangen, de ESP-NOW-verbinding en de balansregeling gereedgemaakt. De motoren blijven stilstaan totdat geldige metingen beschikbaar zijn en het nulpunt is bepaald. |
-| **Pre-condities** | De ESP32-S3-voeding is ingeschakeld. Hierdoor zijn de ESP32-S3 en de MPU6050 actief. De gebruiker houdt de robot rechtop en voldoende stil om te kunnen kalibreren. De motorvoeding hoeft nog niet ingeschakeld te zijn. |
+| **Beschrijving** | Na het inschakelen van de logicavoeding worden de sensor, de motoruitgangen, de ESP-NOW-verbinding en de balansregeling gereedgemaakt. De motoren blijven stilstaan totdat geldige metingen beschikbaar zijn en het nulpunt is bepaald. |
+| **Pre-condities** | De logicavoeding is ingeschakeld. Hierdoor zijn de ESP32-S3, de MPU6050 en de CYD actief. De gebruiker houdt de robot rechtop en voldoende stil om te kunnen kalibreren. De motorvoeding hoeft nog niet ingeschakeld te zijn. |
 | **Scenario** | 1. De ESP32-S3 start de software en zet de status op `KALIBREREN`.<br>2. Er wordt een nieuw sessie-ID gegenereerd en de valteller wordt op nul gezet.<br>3. De motoruitgangen worden geïnitialiseerd met een nulcommando.<br>4. De communicatie met de MPU6050 wordt gestart.<br>5. De ESP-NOW-verbinding met de CYD wordt geconfigureerd.<br>6. Er wordt gecontroleerd of de MPU6050 geldige metingen levert.<br>7. Zodra de robot stil genoeg staat, wordt het nulpunt van de balansmeting bepaald.<br>8. De PID-regeling wordt geïnitialiseerd met de ingestelde parameters.<br>9. De status wordt op `BALANCEREN` gezet en de balansregeling (UC-S3-02) wordt gestart. |
 | **Invariant** | Zolang de initialisatie niet is voltooid, blijven de motorcommando's nul. |
 | **Post-condities** | De ESP32-S3 beschikt over een geldig sensorreferentiepunt, een sessie-ID en een valteller van nul, en kan de balansregeling uitvoeren. |
@@ -108,7 +104,7 @@ wordt meegestuurd naar de CYD.
 | :--- | :--- |
 | **Actor** | ESP32-S3 via ESP-NOW, gebruiker |
 | **Beschrijving** | De CYD ESP32 ontvangt geldige berichten en vertaalt de status, balansafwijking en bewegingsrichting naar expressieve ogen en een gezicht. |
-| **Pre-condities** | De CYD-voeding is ingeschakeld. Het scherm en de ESP-NOW-ontvanger zijn geïnitialiseerd. |
+| **Pre-condities** | De logicavoeding is ingeschakeld. Het scherm en de ESP-NOW-ontvanger zijn geïnitialiseerd. |
 | **Scenario** | 1. Een ESP-NOW-bericht wordt ontvangen.<br>2. Het formaat, de bron en het volgnummer van het bericht worden gecontroleerd.<br>3. De status, balansafwijking en bewegingsrichting worden gelezen.<br>4. Een gezichtsexpressie wordt gekozen:<br>&nbsp;&nbsp;• `KALIBREREN`: opstart- of wachtexpressie;<br>&nbsp;&nbsp;• `BALANCEREN`: expressie die past bij de balansafwijking en bewegingsrichting;<br>&nbsp;&nbsp;• `BALANSVERLIES`: gevallen-expressie;<br>&nbsp;&nbsp;• `FOUT`: foutexpressie.<br>5. De positie, richting of vorm van de ogen wordt aangepast.<br>6. Het gezicht wordt in het bovenste deel van het scherm getekend.<br>7. De valteller en het sessie-ID worden doorgegeven aan UC-CYD-02.<br>8. De weergave wordt bij nieuwe geldige berichten bijgewerkt. |
 | **Invariant** | De gezichtsexpressie is gebaseerd op het laatst ontvangen geldige bericht. |
 | **Post-condities** | Het scherm toont een gezicht dat de laatst bekende toestand van de robot weergeeft. |
@@ -118,11 +114,11 @@ wordt meegestuurd naar de CYD.
 | :--- | :--- |
 | **Actor** | ESP32-S3 via ESP-NOW, gebruiker |
 | **Beschrijving** | De CYD ESP32 houdt het aantal punten bij. Iedere keer dat de robot zijn balans verliest, krijgt de speler één punt. De CYD gebruikt hiervoor de valteller van de ESP32-S3, zodat een gemist bericht geen punt kost en een herhaald bericht geen extra punt oplevert. De actuele score wordt onderaan het scherm getoond. |
-| **Pre-condities** | De CYD-voeding is ingeschakeld en er is een geldig bericht ontvangen. De score is bij het opstarten van de CYD op nul gezet. |
+| **Pre-condities** | De logicavoeding is ingeschakeld en er is een geldig bericht ontvangen. De score is bij het opstarten van de CYD op nul gezet. |
 | **Scenario** | 1. De valteller en het sessie-ID worden uit het geldige bericht gelezen.<br>2. Bij het eerste geldige bericht na het opstarten van de CYD worden de valteller en het sessie-ID als referentie opgeslagen; de score wordt niet verhoogd.<br>3. Bij volgende berichten wordt gecontroleerd of het sessie-ID gelijk is aan de referentie.<br>4. Het verschil tussen de nieuwe valteller en de referentie-valteller wordt bepaald.<br>5. De score wordt met dit verschil verhoogd.<br>6. De nieuwe valteller wordt de referentie-valteller.<br>7. De score wordt onderaan het scherm getoond.<br>8. De score blijft bewaard zolang de CYD ingeschakeld blijft. |
-| **Invariant** | De score kan tijdens één voedingssessie van de CYD alleen gelijk blijven of toenemen. Ieder balansverlies levert precies één punt op. |
-| **Post-condities** | Het scoreboard toont het aantal balansverliezen tijdens de huidige voedingssessie van de CYD. |
-| **Uitzonderingen** | • **Er is geen geldig bericht:** de score wordt niet verhoogd op basis van ontbrekende data.<br>• **Er zijn berichten gemist:** het verschil in valteller is groter dan één en alle gemiste balansverliezen worden alsnog geteld.<br>• **Het sessie-ID is veranderd (de ESP32-S3 is herstart):** de score blijft staan, wordt verhoogd met de nieuwe valteller (die na een herstart bij nul begint) en het nieuwe sessie-ID en de nieuwe valteller worden de referentie.<br>• **De maximale score is bereikt:** de score blijft op de maximale waarde staan.<br>• **De CYD wordt uitgeschakeld en opnieuw ingeschakeld:** de score wordt op nul gezet. |
+| **Invariant** | De score kan tijdens één sessie van de logicavoeding alleen gelijk blijven of toenemen. Ieder balansverlies levert precies één punt op. |
+| **Post-condities** | Het scoreboard toont het aantal balansverliezen tijdens de huidige sessie van de logicavoeding. |
+| **Uitzonderingen** | • **Er is geen geldig bericht:** de score wordt niet verhoogd op basis van ontbrekende data.<br>• **Er zijn berichten gemist:** het verschil in valteller is groter dan één en alle gemiste balansverliezen worden alsnog geteld.<br>• **Het sessie-ID is veranderd (de ESP32-S3 is los van de CYD herstart, bijvoorbeeld door een reset of watchdog):** de score blijft staan, wordt verhoogd met de nieuwe valteller (die na een herstart bij nul begint) en het nieuwe sessie-ID en de nieuwe valteller worden de referentie.<br>• **De maximale score is bereikt:** de score blijft op de maximale waarde staan.<br>• **De logicavoeding wordt uit- en weer ingeschakeld:** de ESP32-S3 en de CYD starten allebei opnieuw en de score wordt op nul gezet. |
 
 | **[UC-CYD-03] Communicatieverlies tonen** | |
 | :--- | :--- |
@@ -155,4 +151,4 @@ wordt meegestuurd naar de CYD.
 - De herstartgrens en de hersteltijd na een balansverlies.
 - De maximumscore.
 - De koppeling tussen status, balanswaarde en gezichtsexpressie.
-- De laad- en beveiligingsarchitectuur per variant (4 Li-ion-cellen in variant A, 3 Li-ion-cellen in variant B).
+- De laad- en beveiligingsarchitectuur van de twee accupacks (logicavoeding en motorvoeding).
