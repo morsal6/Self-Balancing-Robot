@@ -13,13 +13,13 @@ Team: Yunus Kocaman en Morsal Ahmadi
   - [Uitgangspunten](#uitgangspunten)
     - [Systeemcontext](#systeemcontext)
     - [Gameplay](#gameplay)
-    - [Hardwarevarianten](#hardwarevarianten)
+    - [Hardware](#hardware)
   - [Requirements](#requirements)
     - [Functionele Requirements](#functionele-requirements)
     - [Niet-Functionele Requirements](#niet-functionele-requirements)
     - [Constraints](#constraints)
     - [Use Cases](#use-cases)
-    - [Activity Diagrammen](#activity-diagrammen)
+    - [Use Case Diagrams](#use-case-diagrams)
   - [Ontwerp](#ontwerp)
     - [Subsystemen en interfaces](#subsystemen-en-interfaces)
     - [Objectmodellen](#objectmodellen)
@@ -43,28 +43,61 @@ Team: Yunus Kocaman en Morsal Ahmadi
     - [Appendix 2: Referenties](#appendix-2-referenties)
 
 ## Inleiding
-Dit ontwikkeldocument beschrijft het ontwerp en de realisatie van een zelfbalancerende robot die als game wordt gebruikt. De robot staat op twee wielen en houdt zichzelf rechtop met een PID-regeling. Een MPU6050 meet de kanteling en twee TT130-motoren corrigeren die via een h-brug.
 
-Het spel is eenvoudig uit te leggen: de speler duwt de robot. Verliest de robot door de duw zijn balans, dan krijgt de speler een punt. De robot heeft een gezicht op een Cheap Yellow Display (CYD). De expressie van dat gezicht hangt af van hoe de robot balanceert, en onderaan het scherm staat de score.
+Dit ontwikkeldocument beschrijft het ontwerp en de realisatie van een
+zelfbalancerende robot die als game wordt gebruikt. De robot staat op twee
+wielen en houdt zichzelf rechtop met een PID-regeling. Een MPU6050 meet de
+kanteling en twee TT130-motoren corrigeren die via een h-brug.
 
-De gameplay is bewust eenvoudig gehouden. De uitdaging van dit project zit niet in de spelregels, maar in wat er nodig is om ze mogelijk te maken. Het eerste doel is kennis opdoen over de hardware: het uitlezen en filteren van de MPU6050, het aansturen van DC-motoren via een h-brug, het regelen van de balans met een PID-regelaar en het opzetten van een veilige voeding met Li-ion-cellen. Het belangrijkste doel is het toepassen van de behandelde theorie over FreeRTOS, in combinatie met de CYD. Het meten, regelen, versturen, tekenen en scoren moeten tegelijk en op tijd gebeuren. Dat vraagt om meerdere parallelle taken met elk een eigen periode, deadline en prioriteit, die uitsluitend via RTOS-synchronisatiemechanismen met elkaar communiceren.
+Het spel is eenvoudig uit te leggen: de speler duwt de robot. Verliest de robot
+door de duw zijn balans, dan krijgt de speler een punt. De robot heeft een
+gezicht op een Cheap Yellow Display (CYD). De expressie van dat gezicht hangt
+af van hoe de robot balanceert, en onderaan het scherm staat de score.
 
-Het systeem bestaat uit twee subsystemen die draadloos via ESP-NOW met elkaar communiceren:
+De gameplay is bewust eenvoudig gehouden. De uitdaging van dit project zit
+niet in de spelregels, maar in wat er nodig is om ze mogelijk te maken. Het
+eerste doel is kennis opdoen over de hardware: het uitlezen en filteren van de
+MPU6050, het aansturen van DC-motoren via een h-brug, het regelen van de balans
+met een PID-regelaar en het opzetten van een veilige voeding met Li-ion-cellen.
+Het belangrijkste doel is het toepassen van de behandelde theorie over
+FreeRTOS, in combinatie met de CYD. Het meten, regelen, versturen, tekenen en
+scoren moeten tegelijk en op tijd gebeuren. Dat vraagt om meerdere parallelle
+taken met elk een eigen periode, deadline en prioriteit, die uitsluitend via
+RTOS-synchronisatiemechanismen met elkaar communiceren.
 
-de ESP32-S3 Super Mini regelt de balans, stuurt de motoren aan en stelt vast wanneer de robot zijn balans verliest;
-de CYD ESP32 toont het gezicht en houdt de score bij.
+Het systeem bestaat uit twee subsystemen die draadloos via ESP-NOW met elkaar
+communiceren:
 
-De robot is in twee hardwarevarianten gebouwd, die alleen verschillen in het aantal accucellen. De software is voor beide varianten gelijk en wordt geschreven met ESP-IDF, dat FreeRTOS als besturingssysteem gebruikt.
+- de **ESP32-S3 Super Mini** regelt de balans, stuurt de motoren aan en stelt
+  vast wanneer de robot zijn balans verliest;
+- de **CYD ESP32** toont het gezicht en houdt de score bij.
 
-Het doel van dit document is om het ontwerp zo vast te leggen dat de code er direct uit afgeleid kan worden. De usecases, objectmodellen, taakstructurering, klassediagrammen en STD's zijn daarom onderling consistent, ook in naamgeving, en sluiten aan op de code.
+De robot wordt gevoed door vier Li-ion-cellen: twee voor de elektronica
+(ESP32-S3, MPU6050 en CYD) en twee voor de motoren. De software wordt geschreven met ESP-IDF, dat FreeRTOS als
+besturingssysteem gebruikt.
+
+Het doel van dit document is om het ontwerp zo vast te leggen dat de code er
+direct uit afgeleid kan worden. De usecases, objectmodellen, taakstructurering,
+klassediagrammen en STD's zijn daarom onderling consistent, ook in naamgeving,
+en sluiten aan op de code.
 
 ## Leeswijzer
-- Uitgangspunten beschrijft de systeemcontext, de gameplay en de twee hardwarevarianten.
-- Requirements bevat de functionele en niet-functionele requirements met MoSCoW-prioriteit, de constraints, de usecases en de activity diagrammen.
-- Ontwerp werkt de usecases uit tot subsystemen en interfaces, objectmodellen, een taakstructurering met de gebruikte synchronisatiemechanismen, klassediagrammen en STD's. Aan het eind staan de ontwerpparameters en een traceerbaarheidstabel die laat zien hoe usecases, objecten, klassen, taken en code met elkaar samenhangen.
-- Realisatie beschrijft de fysieke opbouw, de code, de tests en het eindresultaat.
-- Conclusie en Reflectie blikt terug op het project en geeft aan wat beter of efficiënter had gekund.
-De appendices bevatten de afstemming van de gameplay met de docent en de referenties.
+
+- **Uitgangspunten** beschrijft de systeemcontext, de gameplay en de
+  hardware.
+- **Requirements** bevat de functionele en niet-functionele requirements met
+  MoSCoW-prioriteit, de constraints, de usecases en de activity diagrammen.
+- **Ontwerp** werkt de usecases uit tot subsystemen en interfaces,
+  objectmodellen, een taakstructurering met de gebruikte
+  synchronisatiemechanismen, klassediagrammen en STD's. Aan het eind staan de
+  ontwerpparameters en een traceerbaarheidstabel die laat zien hoe usecases,
+  objecten, klassen, taken en code met elkaar samenhangen.
+- **Realisatie** beschrijft de fysieke opbouw, de code, de tests en het
+  eindresultaat.
+- **Conclusie en Reflectie** blikt terug op het project en geeft aan wat beter
+  of efficiënter had gekund.
+- De **appendices** bevatten de afstemming van de gameplay met de docent en de
+  referenties.
 
 ## Uitgangspunten
 
@@ -94,43 +127,57 @@ De relaties met de omgeving zijn:
 5. De speler zet de robot weer rechtop. Zodra de robot stil genoeg staat, gaat
    hij opnieuw balanceren en kan de volgende ronde beginnen.
 6. De score staat onderaan het scherm en blijft bewaard zolang de CYD aan
-   staat. Na het uit- en weer inschakelen van de CYD begint de score weer bij
-   nul.
+   staat. Na het uit- en weer inschakelen van de logicavoeding begint de score
+   weer bij nul.
 
-### Hardwarevarianten
-Er zijn twee varianten van de robot. Ze verschillen alleen in het aantal Li-ion-cellen. De overige hardware en de software zijn gelijk.
-
-| | **Variant A** | **Variant B** |
-| :--- | :--- | :--- |
-| **Accu** | 4 Li-ion-cellen in battery shells | 3 Li-ion-cellen in battery shells |
-| **Accuspanning (nominaal / vol)** | 14,8 V / 16,8 V | 11,1 V / 12,6 V |
-| **Motorvoeding** | Via step-down converter naar 5 V | Via step-down converter naar 5 V |
-
-Beide varianten gebruiken dezelfde componenten:
+### Hardware
 
 | **Component** | **Functie** |
 | :--- | :--- |
 | ESP32-S3 Super Mini | Balansregeling, motoraansturing, detectie van balansverlies, verzenden via ESP-NOW |
-| MPU6050 | Meten van kanteling (accelerometer en gyroscoop) |
+| MPU6050 | Meten van kanteling (accelerometer en gyroscoop); gevoed met 3,3 V vanuit de ESP32-S3 |
 | ZK5AD | Dubbele h-brug voor de twee motoren |
 | 2 × TT130-motor | Aandrijving van de wielen |
 | CYD ESP32 | Tonen van gezicht en score, ontvangen via ESP-NOW |
-| Step-down converter | Omzetten van de accuspanning naar 5 V |
-| 3 schakelaars | Afzonderlijk in- en uitschakelen van de ESP32-S3-voeding, de CYD-voeding en de motorvoeding |
+| 4 Li-ion-cellen in battery shells | Twee pakketten van 2 cellen in serie (7,4 V): één voor de logicavoeding, één voor de motorvoeding |
+| 2 step-down converters | 7,4 V naar 5 V voor de logicavoeding, 7,4 V naar 6 V voor de motorvoeding |
+| 2 schakelaars | Afzonderlijk in- en uitschakelen van de logicavoeding en de motorvoeding |
 
-De voeding is functioneel opgedeeld in drie delen, elk met een eigen
-schakelaar:
+De robot heeft twee aparte voedingen, elk met een eigen accupakket van twee
+Li-ion-cellen in serie (7,4 V) en een eigen schakelaar:
 
-- de **ESP32-S3-voeding** voedt de ESP32-S3 en de MPU6050;
-- de **CYD-voeding** voedt alleen de CYD;
-- de **motorvoeding** voedt alleen de vermogenszijde van de ZK5AD.
+- de **logicavoeding** wordt met een step-down converter omgezet naar 5 V en
+  voedt de ESP32-S3 en de CYD. De ESP32-S3 voedt op zijn beurt de MPU6050 met
+  3,3 V;
+- de **motorvoeding** wordt met een step-down converter omgezet naar 6 V en
+  voedt de vermogenszijde van de ZK5AD, die de twee TT130-motoren aanstuurt.
+
+Beide voedingen hebben een gemeenschappelijke massa (common ground), zodat de
+stuursignalen van de ESP32-S3 naar de ZK5AD hetzelfde referentiepunt hebben.
+Doordat de motoren een eigen pakket hebben, veroorzaken stroompieken van de
+motoren geen spanningsdips bij de ESP32-S3, de MPU6050 en de CYD.
+
+De schakelaars zijn geen softwarematige start-, stop- of noodstopfunctie.
+
 
 ## Requirements
 
-De requirements zijn afgeleid van de usecases.
-De kolom bron geeft aan uit welke usecase de requirement komt. De prioriteit is bepaald met MoSCoW.
+De requirements zijn afgeleid van de usecases. Iedere requirement heeft een
+uniek ID, zodat in het ontwerp en de code naar de requirement verwezen kan
+worden. De kolom **Bron** geeft aan uit welke usecase de requirement komt. De
+prioriteit is bepaald met MoSCoW:
+
+- **Must:** noodzakelijk; zonder deze requirement werkt de game niet of
+  voldoet hij niet aan de opdracht.
+- **Should:** belangrijk, maar de game is ook zonder speelbaar.
+- **Could:** wenselijk als er tijd over is.
+- **Would:** wordt in dit project niet gerealiseerd, maar is een mogelijke
+  uitbreiding.
+
 Getallen die zijn gemarkeerd als *(voorlopig)* zijn streefwaarden. De
-definitieve waarden worden na testen vastgelegd.
+definitieve waarden worden na testen vastgelegd in de
+[Ontwerpparameters](#ontwerpparameters).
+
 
 ### Functionele Requirements
 #### ESP32-S3 Super Mini
@@ -155,17 +202,18 @@ definitieve waarden worden na testen vastgelegd.
 | FR-11 | Communicatieverlies tonen | Ontvangt de CYD binnen de communicatietimeout geen geldig bericht, dan toont hij dat de gegevens niet actueel zijn. | De speler moet kunnen zien dat het gezicht niet meer klopt. | Should | UC-CYD-03 |
 
 ### Niet-Functionele Requirements
+
 | **ID** | **Naam** | **Omschrijving** | **Rationale** | **Prioriteit** |
 | :--- | :--- | :--- | :--- | :--- |
 | NFR-01 | Regelfrequentie | De balansregeling draait minimaal op 100 Hz *(voorlopig)*. | Bij een lagere frequentie valt de robot om voordat de correctie effect heeft. | Must |
-| NFR-02 | Onafhankelijke regeling | Een storing in ESP-NOW of de CYD heeft geen invloed op de balansregeling. | De robot moet blijven balanceren, ook als de CYD uit staat. | Must |
+| NFR-02 | Onafhankelijke regeling | Een storing in ESP-NOW of de CYD heeft geen invloed op de balansregeling. | De robot moet blijven balanceren, ook als de verbinding met de CYD wegvalt. | Must |
 | NFR-03 | Veilige motorstand | Buiten de status `BALANCEREN` zijn de motorcommando's altijd nul. | De robot mag niet rijden tijdens kalibreren, na een val of bij een fout. | Must |
 | NFR-04 | Balanceerduur | Zonder verstoring blijft de robot minimaal 60 seconden rechtop staan *(voorlopig)*. | Valt de robot vanzelf om, dan krijgt de speler een punt zonder te duwen. | Must |
 | NFR-05 | Lichte duw opvangen | Een lichte duw leidt niet tot een balansverlies. | Alleen een harde duw mag een punt opleveren. | Should |
 | NFR-06 | Reactietijd display | Een verandering in status of balans is binnen 200 ms zichtbaar op het scherm *(voorlopig)*. | Anders lijkt het gezicht niet bij de robot te horen. | Should |
 
-
 ### Constraints
+
 | **ID** | **Constraint** | **Toelichting** |
 | :--- | :--- | :--- |
 | C-01 | De balansregeling draait op een ESP32-S3 Super Mini. | Gegeven hardware. |
@@ -173,7 +221,7 @@ definitieve waarden worden na testen vastgelegd.
 | C-03 | De kanteling wordt gemeten met een MPU6050. | Gegeven hardware. |
 | C-04 | De motoren worden aangestuurd via een ZK5AD-dubbele-h-brug. | Gegeven hardware. |
 | C-05 | De aandrijving bestaat uit twee TT130-DC-motoren (3–6 V). | Gegeven hardware. |
-| C-06 | De voeding bestaat uit Li-ion-cellen in battery shells: 4 in variant A, 3 in variant B. Een step-down converter zet de spanning om naar 5 V voor de motoren. | Gekozen hardware per variant. |
+| C-06 | De voeding bestaat uit twee pakketten van 2 Li-ion-cellen in serie (7,4 V), met een gemeenschappelijke massa. De logicavoeding gaat via een step-down converter naar 5 V voor de ESP32-S3 en de CYD; de motorvoeding gaat via een step-down converter naar 6 V voor de ZK5AD. | Gekozen hardware. |
 | C-07 | De ESP32-S3 en de CYD communiceren via ESP-NOW. | Beide subsystemen zijn ESP32's; ESP-NOW werkt zonder router of access point. |
 | C-08 | De firmware wordt ontwikkeld met ESP-IDF en draait op FreeRTOS. | Opdracht: de game is gebaseerd op een real-time operating system. |
 | C-09 | Iedere firmware bestaat uit meerdere parallelle taken die uitsluitend via RTOS-synchronisatiemechanismen met elkaar communiceren. | Opdracht (rubric Operating Systems). |
@@ -186,7 +234,7 @@ definitieve waarden worden na testen vastgelegd.
 ### Use Cases
 Zie [UC-folder](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/03-use-cases)
 
-### Activity Diagrammen
+### Use Case Diagrams
 
 `` Voor belangrijke, wat complexere usecases kan het extra verduidelijking opleveren om er SysML - activity diagrammen bij te maken. ``
 
