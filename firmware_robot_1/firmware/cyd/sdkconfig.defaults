@@ -1,0 +1,19 @@
+# CYD (ESP32-2432S028, ESP32-D0WD)
+CONFIG_IDF_TARGET="esp32"
+CONFIG_ESPTOOLPY_FLASHSIZE_4MB=y
+
+# Tick van 1 ms
+CONFIG_FREERTOS_HZ=1000
+
+# Core-verdeling (zie Ontwerpparameters.hpp):
+#   core 0: app_main, WiFi-taak, Tmr Svc, TonenControl, ScoreControl, Touchscreen
+#   core 1: Display (tekenen + present() van het hele scherm)
+CONFIG_ESP_MAIN_TASK_AFFINITY_CPU0=y
+CONFIG_ESP_WIFI_TASK_PINNED_TO_CORE_0=y
+
+# De backbuffer van het display (320x240x2 = 150 kB) moet in intern DMA-geheugen.
+# Minder WiFi-buffers laat daar meer ruimte voor over; ESP-NOW heeft er weinig nodig.
+CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=4
+CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM=8
+CONFIG_ESP_WIFI_AMPDU_TX_ENABLED=n
+CONFIG_ESP_WIFI_AMPDU_RX_ENABLED=n
