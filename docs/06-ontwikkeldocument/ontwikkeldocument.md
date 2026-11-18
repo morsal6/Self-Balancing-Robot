@@ -24,7 +24,7 @@ Team: Yunus Kocaman en Morsal Ahmadi
   - [Ontwerp](#ontwerp)
     - [Subsystemen en interfaces](#subsystemen-en-interfaces)
     - [Objectmodellen](#objectmodellen)
-      - [Lijst met Objecten](#lijst-met-objecten)
+      - [Object beschrijvingen](#lijst-met-objecten)
     - [Klassediagrammen](#klassediagrammen)
     - [STD's](#stds)
     - [Ontwerpparameters](#ontwerpparameters)
@@ -299,7 +299,7 @@ definitieve waarden worden na testen vastgelegd in de
 | C-14 | Op te leveren: een zip met alle code, een PDF van dit ontwikkeldocument met alle diagrammen, en een rechtenvrije PR-film van maximaal 60 seconden waarin de gameplay te zien is. | Opdracht. |
 
 ### Use Cases
-Zie [UC-folder ](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/use-case-diagrams/v2%20(na%20feedback))
+Zie [UC-folder](https://github.com/morsal6/Self-Balancing-Robot/blob/main/docs/03-use-cases/AllUseCasesV2.md)
 
 ### Use Case Diagrams
 
