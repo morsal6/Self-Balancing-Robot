@@ -9,6 +9,7 @@ Team: Yunus Kocaman en Morsal Ahmadi
 - [Ontwikkeldocument Zelfbalancerende Robot](#ontwikkeldocument-zelfbalancerende-robot)
   - [Inhoudsopgave](#inhoudsopgave)
   - [Inleiding](#inleiding)
+  - [Overzicht](#overzicht)
   - [Leeswijzer](#leeswijzer)
   - [Uitgangspunten](#uitgangspunten)
     - [Systeemcontext](#systeemcontext)
@@ -80,6 +81,77 @@ Het doel van dit document is om het ontwerp zo vast te leggen dat de code er
 direct uit afgeleid kan worden. De usecases, objectmodellen, taakstructurering,
 klassediagrammen en STD's zijn daarom onderling consistent, ook in naamgeving,
 en sluiten aan op de code.
+
+## Overzicht
+
+### Wat de robot doet
+
+De zelfbalancerende robot is een spel. De speler duwt de robot. Is de duw hard
+genoeg om de robot zijn balans te laten verliezen, dan krijgt de speler één
+punt. Na een balansverlies stoppen de motoren. De speler zet de robot weer
+rechtop, waarna de robot opnieuw gaat balanceren en een volgende ronde kan
+beginnen.
+
+Op het scherm staat bovenaan een gezicht met expressieve ogen, dat laat zien
+hoe het met de robot gaat. Onderaan staat de score. Door op het touchscreen te
+tikken start de speler een nieuw spel: de score begint dan weer bij nul.
+
+### Subsystemen
+
+De robot bestaat uit twee afzonderlijk ontworpen subsystemen, elk met een eigen
+processor en een eigen ontwikkeldocument:
+
+| **Subsysteem** | **Taak** | **Ontwikkeldocument** |
+| :--- | :--- | :--- |
+| **ESP32-S3 Super Mini** | Leest de MPU6050 uit, voert de PID-regeling uit, stuurt via de ZK5AD-h-brug de twee TT130-motoren aan en stelt vast wanneer de robot zijn balans verliest. | Ontwikkeldocument ESP32-S3 |
+| **CYD ESP32** | Toont het gezicht en de score, en laat de speler via het touchscreen een nieuw spel starten. | Ontwikkeldocument CYD |
+
+### Communicatie tussen de subsystemen
+
+De ESP32-S3 stuurt periodiek een bericht via ESP-NOW naar de CYD. De
+communicatie gaat één kant op: de CYD stuurt niets terug. Beide subsystemen
+hebben een proxy-object via welke ze communiceren.
+
+Een bericht bevat:
+
+| **Veld** | **Betekenis** |
+| :--- | :--- |
+| Sessie-ID | Nieuw bij elke start van de ESP32-S3. Zo merkt de CYD dat de ESP32-S3 opnieuw is opgestart. |
+| Volgnummer | Loopt op per bericht. Zo herkent de CYD verouderde of dubbele berichten. |
+| Fase | Waar de robot mee bezig is (zie hieronder). |
+| Balanswaarde | De actuele balanswaarde. |
+| Bewegingsrichting | De richting waarin de wielen draaien. |
+| Valteller | Het aantal balansverliezen sinds de start van de ESP32-S3. |
+
+De fase heeft één van de volgende waarden:
+
+| **Fase** | **Betekenis** |
+| :--- | :--- |
+| `KALIBREREN` | De ESP32-S3 initialiseert en bepaalt het nulpunt. Motoren staan stil. |
+| `BALANCEREN` | De PID-regeling houdt de robot rechtop. |
+| `BALANSVERLIES` | De robot is omgevallen. Motoren staan stil en de robot wacht tot hij rechtop wordt gezet. |
+| `FOUT` | Er is een sensor-, initialisatie- of regelingsfout. Motoren staan stil tot een herstart. |
+
+### Voeding
+
+De robot gebruikt 4 Li-ion-cellen, verdeeld over twee afzonderlijke accupacks
+van elk 2 cellen:
+
+| **Voeding** | **Accupack** | **Omzetting** | **Voedt** |
+| :--- | :--- | :--- | :--- |
+| **Logicavoeding** | 2 Li-ion-cellen | Step-down converter naar 5 V | ESP32-S3, MPU6050 en CYD |
+| **Motorvoeding** | 2 Li-ion-cellen | Step-down converter naar 6 V | Vermogenszijde van de ZK5AD-h-brug (TT130-motoren) |
+
+Iedere accupack heeft een hoofdschakelaar. Tijdens het spelen staan beide
+voedingen aan. De software schakelt geen voedingen en gaat ervan uit dat beide
+voedingen aan staan.
+
+### Nog vast te leggen ontwerpwaarden (beide subsystemen)
+
+- Het ESP-NOW-berichtformaat (datatypes van de velden).
+- De ESP-NOW-verzendperiode (ESP32-S3) en de communicatietimeout (CYD).
+- De laad- en beveiligingsarchitectuur van de twee accupacks.
+
 
 ## Leeswijzer
 
