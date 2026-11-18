@@ -1,0 +1,11 @@
+# Object beschrijving: object model CYD ESP32
+
+| Objectnaam | Stereotype | Beschrijving |
+| :--- | :--- | :--- |
+| TonenControl | control | "Dirigent" van use case UC-CYD-01 Tonen (zie use case beschrijving). Initialiseert scherm en ontvanger, controleert ontvangen berichten, kiest de gezichtsexpressie en geeft de valteller door aan ScoreControl. Voert CommVerliesControl uit als er te lang geen geldig bericht komt. |
+| ScoreControl | control | "Dirigent" van use case UC-CYD-02 Score bijhouden (zie use case beschrijving). Draait parallel aan TonenControl. Bewaart de score, het referentie-sessie-ID en de referentie-valteller, en start een nieuw spel als het touchscreen wordt aangeraakt. |
+| CommVerliesControl | control | "Dirigent" van use case UC-CYD-03 Communicatieverlies tonen (zie use case beschrijving). Wordt uitgevoerd door TonenControl. Markeert de robotdata als verouderd en toont de communicatieverlies-expressie. |
+| EspNowOntvanger | boundary | Proxy van de ESP32-S3: ontvangt via ESP-NOW de berichten en meldt elk ontvangen bericht. |
+| Display | boundary | Stuurt het scherm van de CYD aan: het gezicht bovenin en de score onderaan. Gebruikt hiervoor de Ili9341Display-driver met backbuffer. |
+| Touchscreen | boundary | Leest het touchscreen (XPT2046) uit en meldt wanneer het wordt aangeraakt. |
+| RobotData | entity | Bevat de gegevens uit het laatst ontvangen geldige bericht (fase, balansafwijking, bewegingsrichting en volgnummer) en of deze nog actueel zijn. |
