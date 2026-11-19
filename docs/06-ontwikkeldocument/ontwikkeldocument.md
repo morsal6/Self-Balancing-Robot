@@ -315,7 +315,7 @@ Zie [UC-diagram folder](https://github.com/morsal6/Self-Balancing-Robot/tree/mai
 
 ### Objectmodellen
 
-`` Ontwerp, uitgaande van use case beschrijvingen en activity diagrammen, de delen van het objectmodel die dat kunnen waarmaken. Beperk de interactie met het web-subsysteem tot een enkel object (een web proxy object oid). Een gedetailleerde uitwerking van het web-subsysteem is in een apart ontwikkeldocument te vinden.``
+Zie [Objectmodellen](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/object-model/v2)
 
 #### Lijst met Objecten
 
