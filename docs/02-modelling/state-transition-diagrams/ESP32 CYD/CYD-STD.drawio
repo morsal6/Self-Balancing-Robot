@@ -1,0 +1,378 @@
+<mxfile host="Electron" pages="4">
+  <diagram id="cyd0" name="TonenControl">
+    <mxGraphModel dx="1032" dy="768" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1200" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cyd0fr" parent="1" style="shape=umlFrame;whiteSpace=wrap;html=1;width=116;height=26;" value="TonenControl" vertex="1">
+          <mxGeometry height="658" width="825" x="4" y="4" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd0sep" parent="1" style="line;strokeWidth=1;html=1;" value="" vertex="1">
+          <mxGeometry height="1" width="825" x="4" y="134" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd0a0" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="150" y="72" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd0a1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;" value="&lt;div style=&#39;text-align:center&#39;&gt;&lt;b&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;+ berichtOntvangen(bericht: Bericht) / xQueueOverwrite(berichtQueue, &amp;amp;bericht);&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;xEventGroupSetBits(eventGroup, eventBitBericht)" vertex="1">
+          <mxGeometry height="62" width="470" x="213" y="51" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd0e2" edge="1" parent="1" source="cyd0a0" style="endArrow=open;endSize=9;html=1;rounded=0;" target="cyd0a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd0b3" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="177" y="155" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd0b4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=30;" value="Wachten" vertex="1">
+          <mxGeometry height="36" width="137" x="119" y="275" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd0b5" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="26" width="26" x="525" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd0e6" edge="1" parent="1" source="cyd0b3" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd0b4" value="/ commTimer = xTimerCreate(...);&#xa;display.init();&#xa;espNowOntvanger.init();&#xa;xTimerStart(commTimer, portMAX_DELAY)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="4" as="offset" />
+            <Array as="points">
+              <mxPoint x="187" y="200" />
+              <mxPoint x="187" y="250" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd0e7" edge="1" parent="1" source="cyd0b4" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=1.000;exitY=0.667;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd0b5" value="eventBitBericht&#xa;[tryReadQueue(berichtQueue, bericht, eventGroup, eventBitBericht)]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="95" y="56" as="offset" />
+            <Array as="points">
+              <mxPoint x="538" y="299" />
+              <mxPoint x="538" y="337" />
+              <mxPoint x="538" y="373" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd0e8" edge="1" parent="1" source="cyd0b5" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.000;exitY=0.500;exitDx=0;exitDy=0;entryX=0.000;entryY=0.500;entryDx=0;entryDy=0;" target="cyd0b4" value="[!isGeldig(bericht)]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="37" as="offset" />
+            <Array as="points">
+              <mxPoint x="142" y="413" />
+              <mxPoint x="142" y="480" />
+              <mxPoint x="92" y="498" />
+              <mxPoint x="25" y="498" />
+              <mxPoint x="25" y="293" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd0e9" edge="1" parent="1" source="cyd0b5" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=1.000;entryY=0.333;entryDx=0;entryDy=0;" target="cyd0b4" value="[else] /&#xa;xEventGroupClearBits(eventGroup, eventBitCommTimer);&#xa;xTimerReset(commTimer, portMAX_DELAY);&#xa;laatsteSessieId = bericht.sessieId;&#xa;laatsteVolgnummer = bericht.volgnummer;&#xa;robotData.schrijf(bericht);&#xa;display.tekenGezicht(kiesExpressie(bericht));&#xa;scoreControl.nieuweValteller(bericht.sessieId, bericht.valteller)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-64" y="211" as="offset" />
+            <Array as="points">
+              <mxPoint x="538" y="451" />
+              <mxPoint x="759" y="451" />
+              <mxPoint x="759" y="287" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd0e10" edge="1" parent="1" source="cyd0b4" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.333;exitY=1.000;exitDx=0;exitDy=0;entryX=0.667;entryY=1.000;entryDx=0;entryDy=0;" target="cyd0b4" value="eventBitCommTimer /&#xa;xEventGroupClearBits(eventGroup, eventBitCommTimer);&#xa;commVerliesControl.voerUit()">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="4" y="20" as="offset" />
+            <Array as="points">
+              <mxPoint x="164" y="336" />
+              <mxPoint x="210" y="336" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd0note" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;fontSize=11;" value="Wachten wacht op eventBitBericht en eventBitCommTimer tegelijk&lt;br&gt;(xClearOnExit = pdFALSE). Zijn beide gezet, dan wordt eerst het bericht&lt;br&gt;afgehandeld. Een geldig bericht wist eventBitCommTimer; anders volgt&lt;br&gt;daarna alsnog de timeout." vertex="1">
+          <mxGeometry height="74" width="475" x="330" y="564" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="cyd1" name="ScoreControl">
+    <mxGraphModel dx="1249" dy="930" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1200" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cyd1fr" parent="1" style="shape=umlFrame;whiteSpace=wrap;html=1;width=116;height=26;" value="ScoreControl" vertex="1">
+          <mxGeometry height="893" width="855" x="4" y="4" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1sep" parent="1" style="line;strokeWidth=1;html=1;" value="" vertex="1">
+          <mxGeometry height="1" width="855" x="4" y="146" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1a0" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="121" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1a1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;" value="&lt;div style=&#39;text-align:center&#39;&gt;&lt;b&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;+ nieuweValteller(sessieId: uint32_t, valteller: uint32_t) / info = {sessieId, valteller};&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;xQueueOverwrite(valtellerQueue, &amp;amp;info); xEventGroupSetBits(eventGroup, eventBitValteller)&lt;br&gt;+ aangeraakt() / xEventGroupSetBits(eventGroup, eventBitAangeraakt)" vertex="1">
+          <mxGeometry height="74" width="558" x="184" y="51" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1e2" edge="1" parent="1" source="cyd1a0" style="endArrow=open;endSize=9;html=1;rounded=0;" target="cyd1a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1b3" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="576" y="167" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1b4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=30;" value="Wachten" vertex="1">
+          <mxGeometry height="36" width="324" x="424" y="276" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1b5" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="26" width="26" x="371" y="413" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1b6" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="26" width="26" x="371" y="554" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1b7" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="26" width="26" x="537" y="689" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd1e8" edge="1" parent="1" source="cyd1b3" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd1b4" value="/ score = 0;&#xa;heeftReferentie = false;&#xa;display.tekenScore(score)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="4" as="offset" />
+            <Array as="points">
+              <mxPoint x="586" y="212" />
+              <mxPoint x="586" y="251" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd1e9" edge="1" parent="1" source="cyd1b4" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.000;exitY=0.333;exitDx=0;exitDy=0;entryX=0.000;entryY=0.667;entryDx=0;entryDy=0;" target="cyd1b4" value="eventBitAangeraakt /&#xa;score = 0;&#xa;display.tekenScore(score)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="22" y="30" as="offset" />
+            <Array as="points">
+              <mxPoint x="68" y="288" />
+              <mxPoint x="68" y="336" />
+              <mxPoint x="112" y="337" />
+              <mxPoint x="112" y="300" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd1e10" edge="1" parent="1" source="cyd1b4" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.164;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd1b5" value="eventBitValteller&#xa;[tryReadQueue(valtellerQueue, info, eventGroup, eventBitValteller)]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-68" y="-1" as="offset" />
+            <Array as="points">
+              <mxPoint x="478" y="338" />
+              <mxPoint x="384" y="375" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd1e11" edge="1" parent="1" source="cyd1b5" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=1.000;exitY=0.500;exitDx=0;exitDy=0;entryX=0.419;entryY=1.000;entryDx=0;entryDy=0;" target="cyd1b4" value="[!heeftReferentie] /&#xa;refSessieId = info.sessieId;&#xa;refValteller = info.valteller;&#xa;heeftReferentie = true">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="16" as="offset" />
+            <Array as="points">
+              <mxPoint x="449" y="426" />
+              <mxPoint x="560" y="401" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd1e12" edge="1" parent="1" source="cyd1b5" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd1b6" value="[else]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="1" as="offset" />
+            <Array as="points">
+              <mxPoint x="384" y="476" />
+              <mxPoint x="384" y="512" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd1e13" edge="1" parent="1" source="cyd1b6" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.987;exitY=0.519;exitDx=0;exitDy=0;entryX=0.648;entryY=1.000;entryDx=0;entryDy=0;" target="cyd1b4" value="[info.sessieId != refSessieId] /&#xa;score = min(score + info.valteller, MAX_SCORE);&#xa;refSessieId = info.sessieId;&#xa;refValteller = info.valteller;&#xa;display.tekenScore(score)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-67" y="29" as="offset" />
+            <Array as="points">
+              <mxPoint x="433" y="568" />
+              <mxPoint x="634" y="537" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd1e14" edge="1" parent="1" source="cyd1b6" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd1b7" value="[else]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="10" as="offset" />
+            <Array as="points">
+              <mxPoint x="384" y="641" />
+              <mxPoint x="440" y="641" />
+              <mxPoint x="494" y="641" />
+              <mxPoint x="550" y="641" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd1e15" edge="1" parent="1" source="cyd1b7" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=1.000;exitY=0.500;exitDx=0;exitDy=0;entryX=0.894;entryY=1.000;entryDx=0;entryDy=0;" target="cyd1b4" value="[info.valteller == refValteller]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-38" y="124" as="offset" />
+            <Array as="points">
+              <mxPoint x="600" y="702" />
+              <mxPoint x="714" y="684" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd1e16" edge="1" parent="1" source="cyd1b7" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=1.000;entryY=0.500;entryDx=0;entryDy=0;" target="cyd1b4" value="[else] /&#xa;score = min(score + (info.valteller - refValteller), MAX_SCORE);&#xa;refValteller = info.valteller;&#xa;display.tekenScore(score)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-116" y="133" as="offset" />
+            <Array as="points">
+              <mxPoint x="550" y="745" />
+              <mxPoint x="795" y="745" />
+              <mxPoint x="795" y="294" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd1note" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;fontSize=11;" value="Wachten wacht op eventBitAangeraakt en eventBitValteller tegelijk&lt;br&gt;(xClearOnExit = pdFALSE). Zijn beide gezet, dan wordt eerst de aanraking&lt;br&gt;afgehandeld; het andere bit blijft staan voor de volgende wait." vertex="1">
+          <mxGeometry height="59" width="482" x="353" y="814" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="cyd2" name="Display">
+    <mxGraphModel dx="937" dy="697" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1200" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cyd2fr" parent="1" style="shape=umlFrame;whiteSpace=wrap;html=1;width=80;height=26;" value="Display" vertex="1">
+          <mxGeometry height="611" width="779" x="4" y="4" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd2sep" parent="1" style="line;strokeWidth=1;html=1;" value="" vertex="1">
+          <mxGeometry height="1" width="779" x="4" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd2a0" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="111" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd2a1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;" value="&lt;div style=&#39;text-align:center&#39;&gt;&lt;b&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;+ init() / xEventGroupSetBits(eventGroup, eventBitInit)&lt;br&gt;+ tekenGezicht(expressie: Expressie) / xQueueOverwrite(expressieQueue, &amp;amp;expressie);&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;xEventGroupSetBits(eventGroup, eventBitGezicht)&lt;br&gt;+ tekenScore(score: uint32_t) / xQueueOverwrite(scoreQueue, &amp;amp;score);&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;xEventGroupSetBits(eventGroup, eventBitScore)" vertex="1">
+          <mxGeometry height="98" width="502" x="174" y="51" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd2e2" edge="1" parent="1" source="cyd2a0" style="endArrow=open;endSize=9;html=1;rounded=0;" target="cyd2a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd2b3" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="396" y="191" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd2b4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=30;" value="Uit" vertex="1">
+          <mxGeometry height="36" width="137" x="337" y="236" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd2b5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=30;" value="Gereed" vertex="1">
+          <mxGeometry height="36" width="137" x="337" y="372" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd2e6" edge="1" parent="1" source="cyd2b3" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd2b4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd2e7" edge="1" parent="1" source="cyd2b4" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd2b5" value="eventBitInit /&#xa;lcd.backlightOn();&#xa;lcd.fillScreen(ACHTERGROND);&#xa;lcd.present()">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="4" as="offset" />
+            <Array as="points">
+              <mxPoint x="406" y="297" />
+              <mxPoint x="406" y="347" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd2e8" edge="1" parent="1" source="cyd2b5" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.155;exitY=1.000;exitDx=0;exitDy=0;entryX=0.309;entryY=1.000;entryDx=0;entryDy=0;" target="cyd2b5" value="eventBitGezicht&#xa;[tryReadQueue(expressieQueue, expressie, eventGroup, eventBitGezicht)] /&#xa;tekenExpressie(expressie);&#xa;lcd.present()">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-152" y="25" as="offset" />
+            <Array as="points">
+              <mxPoint x="358" y="433" />
+              <mxPoint x="380" y="432" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd2e9" edge="1" parent="1" source="cyd2b5" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.820;exitY=1.000;exitDx=0;exitDy=0;entryX=0.910;entryY=1.000;entryDx=0;entryDy=0;" target="cyd2b5" value="eventBitScore&#xa;[tryReadQueue(scoreQueue, score, eventGroup, eventBitScore)] /&#xa;tekenScorebord(score);&#xa;lcd.present()">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="148" y="25" as="offset" />
+            <Array as="points">
+              <mxPoint x="450" y="433" />
+              <mxPoint x="462" y="432" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd2note" parent="1" style="shape=note;whiteSpace=wrap;html=1;size=14;align=left;verticalAlign=top;spacingLeft=6;spacingTop=2;fontSize=11;" value="lcd.init() gebeurt al in de constructor van Display: de backbuffer&lt;br&gt;moet gereserveerd zijn voordat WiFi start.&lt;br&gt;Gereed wacht op eventBitScore en eventBitGezicht tegelijk&lt;br&gt;(xClearOnExit = pdFALSE). Zijn beide gezet, dan wordt eerst de score&lt;br&gt;afgehandeld; het andere bit blijft staan voor de volgende wait." vertex="1">
+          <mxGeometry height="89" width="456" x="303" y="502" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="cyd3" name="Touchscreen">
+    <mxGraphModel dx="1003" dy="746" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1200" pageHeight="1600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cyd3fr" parent="1" style="shape=umlFrame;whiteSpace=wrap;html=1;width=109;height=26;" value="Touchscreen" vertex="1">
+          <mxGeometry height="704" width="515" x="4" y="4" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3sep" parent="1" style="line;strokeWidth=1;html=1;" value="" vertex="1">
+          <mxGeometry height="1" width="515" x="4" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3a0" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="25" y="66" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3a1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;" value="&lt;div style=&#39;text-align:center&#39;&gt;&lt;b&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/b&gt;&lt;/div&gt;&lt;hr&gt;(geen publieke functies die door een andere taak worden aangeroepen)" vertex="1">
+          <mxGeometry height="50" width="410" x="88" y="51" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3e2" edge="1" parent="1" source="cyd3a0" style="endArrow=open;endSize=9;html=1;rounded=0;" target="cyd3a1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3b3" parent="1" style="ellipse;fillColor=#000000;strokeColor=#000000;" value="" vertex="1">
+          <mxGeometry height="20" width="20" x="317" y="143" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3b4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=30;" value="Wachten" vertex="1">
+          <mxGeometry height="36" width="137" x="258" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3b5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;arcSize=30;" value="Aangeraakt" vertex="1">
+          <mxGeometry height="36" width="137" x="112" y="457" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3b6" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="26" width="26" x="168" y="331" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3b7" parent="1" style="rhombus;whiteSpace=wrap;html=1;" value="" vertex="1">
+          <mxGeometry height="26" width="26" x="284" y="593" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3e8" edge="1" parent="1" source="cyd3b3" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd3b4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cyd3e9" edge="1" parent="1" source="cyd3b4" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.148;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd3b6" value="after(TOUCH_PERIODE)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-63" as="offset" />
+            <Array as="points">
+              <mxPoint x="279" y="281" />
+              <mxPoint x="239" y="281" />
+              <mxPoint x="181" y="299" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd3e10" edge="1" parent="1" source="cyd3b6" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd3b5" value="[isAangeraakt()] /&#xa;listener-&gt;aangeraakt()">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint y="4" as="offset" />
+            <Array as="points">
+              <mxPoint x="181" y="389" />
+              <mxPoint x="181" y="425" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd3e11" edge="1" parent="1" source="cyd3b6" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=1.000;exitY=0.500;exitDx=0;exitDy=0;entryX=0.558;entryY=1.000;entryDx=0;entryDy=0;" target="cyd3b4" value="[else]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="9" y="18" as="offset" />
+            <Array as="points">
+              <mxPoint x="317" y="344" />
+              <mxPoint x="317" y="389" />
+              <mxPoint x="335" y="389" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd3e12" edge="1" parent="1" source="cyd3b5" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.954;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" target="cyd3b7" value="after(TOUCH_PERIODE)">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="30" y="2" as="offset" />
+            <Array as="points">
+              <mxPoint x="243" y="525" />
+              <mxPoint x="297" y="561" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd3e13" edge="1" parent="1" source="cyd3b7" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=1.000;exitY=0.500;exitDx=0;exitDy=0;entryX=0.859;entryY=1.000;entryDx=0;entryDy=0;" target="cyd3b4" value="[!isAangeraakt()]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-10" y="169" as="offset" />
+            <Array as="points">
+              <mxPoint x="339" y="606" />
+              <mxPoint x="339" y="651" />
+              <mxPoint x="376" y="651" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cyd3e14" edge="1" parent="1" source="cyd3b7" style="endArrow=open;endSize=9;html=1;rounded=0;fontSize=10;align=left;labelBackgroundColor=#ffffff;exitX=0.000;exitY=0.500;exitDx=0;exitDy=0;entryX=0.774;entryY=1.000;entryDx=0;entryDy=0;" target="cyd3b5" value="[else]">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="8" y="38" as="offset" />
+            <Array as="points">
+              <mxPoint x="245" y="606" />
+              <mxPoint x="245" y="651" />
+              <mxPoint x="218" y="651" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
