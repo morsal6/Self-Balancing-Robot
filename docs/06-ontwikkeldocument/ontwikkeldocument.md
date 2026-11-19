@@ -21,22 +21,12 @@ Team: Yunus Kocaman en Morsal Ahmadi
     - [Constraints](#constraints)
     - [Use Cases](#use-cases)
     - [Use Case Diagrams](#use-case-diagrams)
-  - [Ontwerp](#ontwerp)
-    - [Subsystemen en interfaces](#subsystemen-en-interfaces)
     - [Objectmodellen](#objectmodellen)
       - [Object beschrijvingen](#lijst-met-objecten)
     - [Klassediagrammen](#klassediagrammen)
     - [STD's](#stds)
-    - [Ontwerpparameters](#ontwerpparameters)
-  - [Realisatie](#realisatie)
-    - [Fysieke View](#fysieke-view)
-    - [Code](#code)
-    - [Testen](#testen)
     - [Eindresultaat](#eindresultaat)
-  - [Conclusie en Reflectie](#conclusie-en-reflectie)
-  - [Appendices](#appendices)
-    - [Appendix 1: Afstemming gameplay met docent](#appendix-1-afstemming-gameplay-met-docent)
-    - [Appendix 2: Referenties](#appendix-2-referenties)
+
 
 ## Inleiding
 
@@ -73,7 +63,7 @@ De robot wordt gevoed door vier Li-ion-cellen: twee voor de elektronica
 besturingssysteem gebruikt.
 
 Het doel van dit document is om het ontwerp zo vast te leggen dat de code er
-direct uit afgeleid kan worden. De usecases, objectmodellen, taakstructurering,
+direct uit afgeleid kan worden. De usecases, objectmodellen,
 klassediagrammen en STD's zijn daarom onderling consistent, ook in naamgeving,
 en sluiten aan op de code.
 
@@ -93,12 +83,12 @@ tikken start de speler een nieuw spel: de score begint dan weer bij nul.
 
 ### Subsystemen
 
-De robot bestaat uit twee afzonderlijk ontworpen subsystemen, elk met een eigen
-processor en een eigen ontwikkeldocument:
+De robot bestaat uit twee subsystemen, elk met een eigen processor:
+
 
 | **Subsysteem** | **Taak** | **Ontwikkeldocument** |
 | :--- | :--- | :--- |
-| **ESP32-S3 Super Mini** | Leest de MPU6050 uit, voert de PID-regeling uit, stuurt via de ZK5AD-h-brug de twee TT130-motoren aan en stelt vast wanneer de robot zijn balans verliest. | Ontwikkeldocument ESP32-S3 |
+| **ESP32-S3 Super Mini** | Leest de MPU6050 uit, voert de PID-regeling uit, stuurt via de ZK5AD h brug de twee TT130 motoren aan en stelt vast wanneer de robot zijn balans verliest. | Ontwikkeldocument ESP32-S3 |
 | **CYD ESP32** | Toont het gezicht en de score, en laat de speler via het touchscreen een nieuw spel starten. | Ontwikkeldocument CYD |
 
 ### Communicatie tussen de subsystemen
@@ -125,7 +115,7 @@ De fase heeft één van de volgende waarden:
 | `KALIBREREN` | De ESP32-S3 initialiseert en bepaalt het nulpunt. Motoren staan stil. |
 | `BALANCEREN` | De PID-regeling houdt de robot rechtop. |
 | `BALANSVERLIES` | De robot is omgevallen. Motoren staan stil en de robot wacht tot hij rechtop wordt gezet. |
-| `FOUT` | Er is een sensor-, initialisatie- of regelingsfout. Motoren staan stil tot een herstart. |
+| `FOUT` | Er is een sensor-, initialisatie of regelingsfout. Motoren staan stil tot een herstart. |
 
 ### Voeding
 
@@ -163,15 +153,13 @@ voedingen aan staan.
   eindresultaat.
 - **Conclusie en Reflectie** blikt terug op het project en geeft aan wat beter
   of efficiënter had gekund.
-- De **appendices** bevatten de afstemming van de gameplay met de docent en de
-  referenties.
+
 
 ## Uitgangspunten
 
 ### Systeem Context
 De mindmap hieronder geeft de context van het systeem weer: de gebruiker, de twee subsystemen met hun sensoren en actuatoren, de communicatie en de voeding.
-![systeemcontextMindmap](/media/images/systeemcontext.png)
-
+![alt text](../../media/images/systeemcontext.png)
 De relaties met de omgeving zijn:
 
 | **Externe entiteit** | **Interactie met het systeem** |
@@ -194,8 +182,8 @@ De relaties met de omgeving zijn:
 5. De speler zet de robot weer rechtop. Zodra de robot stil genoeg staat, gaat
    hij opnieuw balanceren en kan de volgende ronde beginnen.
 6. De score staat onderaan het scherm en blijft bewaard zolang de CYD aan
-   staat. Na het uit- en weer inschakelen van de logicavoeding begint de score
-   weer bij nul.
+   staat. Als de speler het scherm aanraakt, of als de logicavoeding uit en
+   weer ingeschakeld wordt, begint de score weer bij nul.
 
 ### Hardware
 
@@ -286,7 +274,7 @@ definitieve waarden worden na testen vastgelegd in de
 | C-01 | De balansregeling draait op een ESP32-S3 Super Mini. | Gegeven hardware. |
 | C-02 | Het gezicht en de score worden getoond op een CYD (Cheap Yellow Display) met ESP32. | Gegeven hardware. |
 | C-03 | De kanteling wordt gemeten met een MPU6050. | Gegeven hardware. |
-| C-04 | De motoren worden aangestuurd via een ZK5AD-dubbele-h-brug. | Gegeven hardware. |
+| C-04 | De motoren worden aangestuurd via een ZK5AD dubbele h brug. | Gegeven hardware. |
 | C-05 | De aandrijving bestaat uit twee TT130-DC-motoren (3–6 V). | Gegeven hardware. |
 | C-06 | De voeding bestaat uit twee pakketten van 2 Li-ion-cellen in serie (7,4 V), met een gemeenschappelijke massa. De logicavoeding gaat via een step-down converter naar 5 V voor de ESP32-S3 en de CYD; de motorvoeding gaat via een step-down converter naar 6 V voor de ZK5AD. | Gekozen hardware. |
 | C-07 | De ESP32-S3 en de CYD communiceren via ESP-NOW. | Beide subsystemen zijn ESP32's; ESP-NOW werkt zonder router of access point. |
@@ -299,7 +287,7 @@ definitieve waarden worden na testen vastgelegd in de
 | C-14 | Op te leveren: een zip met alle code, een PDF van dit ontwikkeldocument met alle diagrammen, en een rechtenvrije PR-film van maximaal 60 seconden waarin de gameplay te zien is. | Opdracht. |
 
 ### Use Cases
-Zie [UC-folder](https://github.com/morsal6/Self-Balancing-Robot/blob/main/docs/03-use-cases/AllUseCasesV2.md)
+Zie [UC-folder](https://github.com/morsal6/Self-Balancing-Robot/blob/main/docs/03-use-cases/AllUseCasesV2(laatste-versie).md)
 # Usecase beschrijvingen 
 
 ## ESP32-S3 Super Mini
@@ -317,7 +305,7 @@ inhoud van de ESP-NOW-berichten.
 | **[UC-S3-01] Initialiseren** | |
 | :--- | :--- |
 | **Actor** | Gebruiker, MPU6050, ZK5AD |
-| **Beschrijving** | Maakt de sensor, de motoruitgangen, de ESP-NOW-verbinding en de balansregeling gereed, en bepaalt het nulpunt van de balansmeting terwijl de gebruiker de robot rechtop en stil houdt. |
+| **Beschrijving** | Maakt de sensor, de motoruitgangen, de ESP-NOW verbinding en de balansregeling gereed, en bepaalt het nulpunt van de balansmeting terwijl de gebruiker de robot rechtop en stil houdt. |
 | **Pre-condities** | UC-S3-00 voert deze use case uit, direct na het opstarten van de ESP32-S3. De gebruiker houdt de robot rechtop en stil. |
 | **Scenario** | 1. Er wordt een nieuw sessie-ID gegenereerd en de valteller wordt op nul gezet.<br>2. De motoruitgangen worden geïnitialiseerd met een nulcommando.<br>3. De communicatie met de MPU6050 wordt gestart.<br>4. De ESP-NOW-verbinding met de CYD wordt geconfigureerd.<br>5. Wacht op een nieuwe meting van de MPU6050.<br>6. Is de meting ongeldig, zie de uitzondering *De MPU6050 levert een ongeldige meting*.<br>7. Beweegt de robot, dan begint de kalibratietijd opnieuw: goto 5.<br>8. Staat de robot nog niet gedurende de kalibratietijd stil: goto 5.<br>9. Het nulpunt van de balansmeting wordt bepaald.<br>10. De PID-regeling wordt geïnitialiseerd met de ingestelde parameters. |
 | **Invariant** | Zolang de initialisatie niet is voltooid, blijven de motorcommando's nul. |
@@ -329,7 +317,7 @@ inhoud van de ESP-NOW-berichten.
 | **Actor** | MPU6050, ZK5AD, TT130-motoren |
 | **Beschrijving** | Verwerkt iedere meting tot een balanswaarde. De PID-regeling gebruikt de afwijking ten opzichte van het nulpunt om de linker- en rechtermotor aan te sturen en de robot rechtop te houden, totdat de robot zijn balans verliest. |
 | **Pre-condities** | UC-S3-00 voert deze use case uit, na een geslaagde initialisatie (UC-S3-01) of nadat de robot weer rechtop is gezet (UC-S3-03). |
-| **Scenario** | 1. Wacht op een nieuwe meting van de MPU6050. De MPU6050 levert iedere regelperiode een meting.<br>2. De accelerometer- en gyroscoopmetingen worden gefilterd en gecombineerd tot een balanswaarde.<br>3. Ligt de balanswaarde buiten de balansverliesgrens: goto 9.<br>4. De afwijking ten opzichte van het nulpunt wordt bepaald.<br>5. De proportionele, integrale en differentiële PID-componenten worden berekend en gecombineerd tot een correctiecommando, dat wordt begrensd tot het toegestane bereik.<br>6. De richting en snelheid van de linker- en rechtermotor worden bepaald, en de ZK5AD stuurt de TT130-motoren aan.<br>7. De actuele balanswaarde en bewegingsrichting worden aan UC-S3-04 doorgegeven.<br>8. Goto 1.<br>9. Er wordt geen correctie toegepast.<br>10. Ligt de balanswaarde nog niet gedurende de bevestigingstijd onafgebroken buiten de balansverliesgrens: goto 1.<br>11. Er is een balansverlies vastgesteld. |
+| **Scenario** | 1. Wacht op een nieuwe meting van de MPU6050. De MPU6050 levert iedere regelperiode een meting.<br>2. De accelerometer- en gyroscoopmetingen worden gefilterd en gecombineerd tot een balanswaarde.<br>3. Ligt de balanswaarde buiten de balansverliesgrens: goto 9.<br>4. De afwijking ten opzichte van het nulpunt wordt bepaald.<br>5. De proportionele, integrale en differentiële PID-componenten worden berekend en gecombineerd tot een correctiecommando, dat wordt begrensd tot het toegestane bereik.<br>6. De richting en snelheid van de linker en rechtermotor worden bepaald, en de ZK5AD stuurt de TT130-motoren aan.<br>7. De actuele balanswaarde en bewegingsrichting worden aan UC-S3-04 doorgegeven.<br>8. Goto 1.<br>9. Er wordt geen correctie toegepast.<br>10. Ligt de balanswaarde nog niet gedurende de bevestigingstijd onafgebroken buiten de balansverliesgrens: goto 1.<br>11. Er is een balansverlies vastgesteld. |
 | **Invariant** | De PID-uitgang en de motorcommando's blijven binnen de ingestelde veiligheidsgrenzen. |
 | **Post-condities** | Er is een balansverlies vastgesteld. Terug naar UC-S3-00. |
 | **Uitzonderingen** | - **Een sensorwaarde is ongeldig:** er wordt geen nieuwe correctie toegepast, beide motorcommando's worden op nul gezet en er wordt een sensorfout aan UC-S3-00 gemeld. |
@@ -368,8 +356,8 @@ inhoud van de ESP-NOW-berichten.
 
 ### Nog vast te leggen ontwerpwaarden
 
-- De MPU6050-balansas en de tekenconventie van de balanswaarde.
-- De PID-parameters en de maximale motoruitgang.
+- De MPU6050 balans as.
+- De PID-parameters en de maximale motorpower.
 - De regelperiode.
 - De kalibratietijd (hoe lang de robot stil moet staan tijdens het initialiseren).
 - De balansverliesgrens en de bevestigingstijd.
@@ -383,7 +371,7 @@ inhoud van de ESP-NOW-berichten.
 | **Actor** | ESP32-S3 (via ESP-NOW), Gebruiker |
 | **Beschrijving** | De CYD ontvangt berichten van de ESP32-S3 en vertaalt de fase, de balansafwijking en de bewegingsrichting naar een gezicht met expressieve ogen. |
 | **Pre-condities** | — |
-| **Scenario** | 1. Het scherm en de ESP-NOW-ontvanger worden geïnitialiseerd.<br>2. Wacht op een ESP-NOW-bericht.<br>3. Het formaat, de bron en het volgnummer van het bericht worden gecontroleerd.<br>4. De fase, balansafwijking en bewegingsrichting worden gelezen.<br>5. Een gezichtsexpressie wordt gekozen:<br>&nbsp;&nbsp;- `KALIBREREN`: opstart- of wachtexpressie;<br>&nbsp;&nbsp;- `BALANCEREN`: expressie die past bij de balansafwijking en bewegingsrichting;<br>&nbsp;&nbsp;- `BALANSVERLIES`: gevallen-expressie;<br>&nbsp;&nbsp;- `FOUT`: foutexpressie.<br>6. De positie, richting of vorm van de ogen wordt aangepast.<br>7. Het gezicht wordt in het bovenste deel van het scherm getekend.<br>8. De valteller en het sessie-ID worden doorgegeven aan UC-CYD-02.<br>9. Goto 2. |
+| **Scenario** | 1. Het scherm en de ESP-NOW-ontvanger worden geïnitialiseerd.<br>2. Wacht op een ESP-NOW-bericht.<br>3. Het formaat en het volgnummer van het bericht worden gecontroleerd.<br>4. De fase, balansafwijking en bewegingsrichting worden gelezen.<br>5. Een gezichtsexpressie wordt gekozen:<br>&nbsp;&nbsp;- `KALIBREREN`: opstart of wachtexpressie;<br>&nbsp;&nbsp;- `BALANCEREN`: expressie die past bij de balansafwijking en bewegingsrichting;<br>&nbsp;&nbsp;- `BALANSVERLIES`: gevallen-expressie;<br>&nbsp;&nbsp;- `FOUT`: foutexpressie.<br>6. De positie, richting of vorm van de ogen wordt aangepast.<br>7. Het gezicht wordt in het bovenste deel van het scherm getekend.<br>8. De valteller en het sessie-ID worden doorgegeven aan UC-CYD-02.<br>9. Goto 2. |
 | **Uitzonderingen** | - **Het bericht is ongeldig of verouderd:** het bericht wordt genegeerd en het getoonde gezicht blijft staan: goto 2.<br>- **De balanswaarde valt buiten het expressiebereik:** de waarde wordt begrensd tot de beschikbare gezichtstoestanden.<br>- **Er is binnen de communicatietimeout geen geldig bericht ontvangen:** voer UC-CYD-03 Communicatieverlies tonen uit en wacht tot die klaar is, daarna goto 2. |
 
 | **[UC-CYD-02] Score bijhouden** | |
@@ -399,9 +387,9 @@ inhoud van de ESP-NOW-berichten.
 | **Actor** | Gebruiker |
 | **Beschrijving** | Maakt op het scherm zichtbaar dat de getoonde informatie niet meer actueel is, omdat er geen geldige berichten meer binnenkomen. |
 | **Pre-condities** | UC-CYD-01 voert deze use case uit, omdat er binnen de communicatietimeout geen geldig bericht is ontvangen. |
-| **Scenario** | 1. De laatst bekende balansinformatie wordt als niet-actueel gemarkeerd.<br>2. In het bovenste deel van het scherm wordt een communicatieverlies-expressie getoond. De score onderaan blijft zichtbaar. |
+| **Scenario** | 1. De laatst bekende balansinformatie wordt als niet-actueel gemarkeerd.<br>2. In het bovenste deel van het scherm wordt een communicatieverlies expressie getoond. De score onderaan blijft zichtbaar. |
 | **Invariant** | Oude balansdata wordt nooit zonder waarschuwing als actuele data getoond. |
-| **Post-condities** | De communicatieverlies-expressie blijft zichtbaar totdat UC-CYD-01 weer een geldig bericht ontvangt. Terug naar UC-CYD-01. |
+| **Post-condities** | De communicatieverlies expressie blijft zichtbaar totdat UC-CYD-01 weer een geldig bericht ontvangt. Terug naar UC-CYD-01. |
 
 ### Relaties tussen de usecases
 
@@ -420,13 +408,6 @@ inhoud van de ESP-NOW-berichten.
 Zie [UC-diagram folder](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/use-case-diagrams/v2%20(na%20feedback))
 ![alt text](<../02-modelling/use-case-diagrams/v2 (na feedback)/usecasediagramCYD.png>)
 ![alt text](<../02-modelling/use-case-diagrams/v2 (na feedback)/usecasediagramS3.png>)
-## Ontwerp
-
-``leg uit hoe het ontwerp volgt door het volgen van de stappen die in de sub-hoofdstukken worden behandeld en hoe deze onderwerpen met elkaar in verband staan``
-
-### Functionele decompositie / (sub)systems and interfaces
-
-`` Geef met een functionele decompositie van het systeem grafisch weer hoe de verschillende functies (uit de functionele requirements) van het systeem met elkaar samenhangen. Dat geeft goede handvaten voor de decompositie van software en hardware verder op de rit. ``
 
 # Objectmodellen
 
@@ -446,7 +427,7 @@ Zie [Objectmodellenlijst](https://github.com/morsal6/Self-Balancing-Robot/tree/m
 | ScoreControl | control | "Dirigent" van use case UC-CYD-02 Score bijhouden (zie use case beschrijving). Draait parallel aan TonenControl. Bewaart de score, het referentie-sessie-ID en de referentie-valteller, en start een nieuw spel als het touchscreen wordt aangeraakt. |
 | CommVerliesControl | control | "Dirigent" van use case UC-CYD-03 Communicatieverlies tonen (zie use case beschrijving). Wordt uitgevoerd door TonenControl. Markeert de robotdata als verouderd en toont de communicatieverlies-expressie. |
 | EspNowOntvanger | boundary | Proxy van de ESP32-S3: ontvangt via ESP-NOW de berichten en meldt elk ontvangen bericht. |
-| Display | boundary | Stuurt het scherm van de CYD aan: het gezicht bovenin en de score onderaan. Gebruikt hiervoor de Ili9341Display-driver met backbuffer. |
+| Display | boundary | Stuurt het scherm van de CYD aan: het gezicht bovenin en de score onderaan. Gebruikt hiervoor de Ili9341Display driver met backbuffer. |
 | Touchscreen | boundary | Leest het touchscreen (XPT2046) uit en meldt wanneer het wordt aangeraakt. |
 | RobotData | entity | Bevat de gegevens uit het laatst ontvangen geldige bericht (fase, balansafwijking, bewegingsrichting en volgnummer) en of deze nog actueel zijn. |
 
@@ -461,14 +442,14 @@ Zie [Objectmodellenlijst](https://github.com/morsal6/Self-Balancing-Robot/tree/m
 | BalansverliesControl | control | "Dirigent" van use case UC-S3-03 Balansverlies afhandelen (zie use case beschrijving). Wordt uitgevoerd door RobotControl. Stopt de motoren, verhoogt de valteller en wacht tot de robot weer rechtop en stil staat. |
 | FoutControl | control | "Dirigent" van use case UC-S3-05 Fouttoestand afhandelen (zie use case beschrijving). Wordt uitgevoerd door RobotControl. Zet de motoren veilig op nul en markeert de balansinformatie als ongeldig. |
 | VerstuurControl | control | "Dirigent" van use case UC-S3-04 Versturen (zie use case beschrijving). Draait parallel aan RobotControl en verstuurt periodiek, of bij een nieuwe fase of valteller, een bericht naar de CYD. |
-| Mpu6050 | boundary | Stuurt de MPU6050-hardware aan en meldt iedere regelperiode een nieuwe accelerometer- en gyroscoopmeting. |
-| MotorDriver | boundary | Stuurt via de ZK5AD-h-brug de linker- en rechter-TT130-motor aan (richting en snelheid). |
+| Mpu6050 | boundary | Stuurt de MPU6050-hardware aan en meldt iedere regelperiode een nieuwe accelerometer en gyroscoopmeting. |
+| MotorDriver | boundary | Stuurt via de ZK5AD h brug de linker en rechter TT130-motor aan (richting en snelheid). |
 | EspNowZender | boundary | Proxy naar de CYD ESP32: configureert de ESP-NOW-verbinding en verstuurt berichten. |
 | RobotFase | entity | Bevat de fase waarin de robot zich bevindt: KALIBREREN, BALANCEREN, BALANSVERLIES of FOUT. |
 | Sessie | entity | Bevat het sessie-ID en de valteller. Deze data wordt als pakket naar de CYD verstuurd. |
 | BalansData | entity | Bevat de actuele balanswaarde, de bewegingsrichting en of deze gegevens geldig zijn. |
-| BalansFilter | — | Combineert accelerometer- en gyroscoopmetingen tot een balanswaarde en bewaart het nulpunt. |
-| PidRegelaar | — | Berekent met de PID-parameters een begrensd correctiecommando uit de afwijking ten opzichte van het nulpunt. |
+| BalansFilter | — | Combineert accelerometer en gyroscoopmetingen tot een balanswaarde en bewaart het nulpunt. |
+| PidRegelaar | — | erekent met de PID-parameters een begrensd motorcommando uit de afwijking ten opzichte van de doelhoek. De doelhoek volgt uit de geschatte rijsnelheid, zodat de robot niet langzaam wegrijdt. |
 
 
 # Klassediagrammen
@@ -503,5 +484,35 @@ Zie [STD-esp32s3](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs
 
 ### Eindresultaat
 
-`` Nog eens op een rijtje de behaalde functionaliteiten en de performance. ``
 
+
+### Wat nog niet goed werkt
+
+Als de motoren hard optrekken of plotseling stoppen, herstart de ESP32-S3 soms.
+Ik vermoed dat de oorzaak is dat er een storing van de motoren op de voeding en de massa plaatsvind, ook al hebben de motoren een
+eigen accupack. De CYD toont dan het gezicht voor verbindingsverlies, totdat de
+ESP32-S3 weer opgestart is. Een elco van 1000 µF op de motorvoeding van de
+h-brug maakte het minder, maar loste het niet op.
+
+### Wat we beter zouden doen
+
+- Encoders op de wielen. Nu schatten we de snelheid uit het motorcommando. Met
+  echte snelheidsmeting kan de robot beter op zijn plek blijven.
+- Vanaf het begin rekening houden met storing van de motoren, met
+  condensatoren en een goede massa.
+- Bij het opstarten eerst ESP-NOW starten en daarna pas het eerste bericht
+  sturen. Nu gaat het allereerste bericht verloren.
+
+### Wat goed ging
+
+- De robot balanceert zelfstandig. Na een val stoppen de motoren en balanceert
+  hij weer zodra hij rechtop en stil staat.
+- De score klopt ook als er berichten gemist worden of als de ESP32-S3
+  opnieuw opstart, doordat de CYD met de valteller en het sessie-ID rekent.
+- Het gezicht reageert op de kanteling en laat zien wanneer de robot valt, een
+  fout heeft of geen verbinding meer heeft.
+- Beide ESP32's werken met meerdere taken die alleen via queues, event groups,
+  timers en mutexen met elkaar praten. Daardoor loopt de regeling door, ook als
+  de verbinding met de CYD wegvalt.
+- De code volgt de klassediagrammen en STD's. Elke toestand en elke overgang
+  uit de STD's is terug te vinden in de code.
