@@ -304,7 +304,8 @@ Zie [UC-folder](https://github.com/morsal6/Self-Balancing-Robot/blob/main/docs/0
 ### Use Case Diagrams
 
 Zie [UC-diagram folder](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/use-case-diagrams/v2%20(na%20feedback))
-
+![alt text](<../02-modelling/use-case-diagrams/v2 (na feedback)/usecasediagramCYD.png>)
+![alt text](<../02-modelling/use-case-diagrams/v2 (na feedback)/usecasediagramS3.png>)
 ## Ontwerp
 
 ``leg uit hoe het ontwerp volgt door het volgen van de stappen die in de sub-hoofdstukken worden behandeld en hoe deze onderwerpen met elkaar in verband staan``
@@ -313,100 +314,80 @@ Zie [UC-diagram folder](https://github.com/morsal6/Self-Balancing-Robot/tree/mai
 
 `` Geef met een functionele decompositie van het systeem grafisch weer hoe de verschillende functies (uit de functionele requirements) van het systeem met elkaar samenhangen. Dat geeft goede handvaten voor de decompositie van software en hardware verder op de rit. ``
 
-### Objectmodellen
+# Objectmodellen
 
-Zie [Objectmodellen](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/object-model/v2)
+Zie [Objectmodellen](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/object-model/v2(laatste%20versie))
+
+![alt text](<../02-modelling/object-model/v2(laatste versie)/ESP32 CYD/objectmodelCYD.png>)
+
+![alt text](<../02-modelling/object-model/v2(laatste versie)/ESP32-S3 super mini/objectmodelS3.png>)
 
 #### Lijst met Objecten
+Zie [Objectmodellenlijst](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/object-model/v2(laatste%20versie))
+# Object beschrijving: object model CYD ESP32
+## CYD
+| Objectnaam | Stereotype | Beschrijving |
+| :--- | :--- | :--- |
+| TonenControl | control | "Dirigent" van use case UC-CYD-01 Tonen (zie use case beschrijving). Initialiseert scherm en ontvanger, controleert ontvangen berichten, kiest de gezichtsexpressie en geeft de valteller door aan ScoreControl. Voert CommVerliesControl uit als er te lang geen geldig bericht komt. |
+| ScoreControl | control | "Dirigent" van use case UC-CYD-02 Score bijhouden (zie use case beschrijving). Draait parallel aan TonenControl. Bewaart de score, het referentie-sessie-ID en de referentie-valteller, en start een nieuw spel als het touchscreen wordt aangeraakt. |
+| CommVerliesControl | control | "Dirigent" van use case UC-CYD-03 Communicatieverlies tonen (zie use case beschrijving). Wordt uitgevoerd door TonenControl. Markeert de robotdata als verouderd en toont de communicatieverlies-expressie. |
+| EspNowOntvanger | boundary | Proxy van de ESP32-S3: ontvangt via ESP-NOW de berichten en meldt elk ontvangen bericht. |
+| Display | boundary | Stuurt het scherm van de CYD aan: het gezicht bovenin en de score onderaan. Gebruikt hiervoor de Ili9341Display-driver met backbuffer. |
+| Touchscreen | boundary | Leest het touchscreen (XPT2046) uit en meldt wanneer het wordt aangeraakt. |
+| RobotData | entity | Bevat de gegevens uit het laatst ontvangen geldige bericht (fase, balansafwijking, bewegingsrichting en volgnummer) en of deze nog actueel zijn. |
 
-`` Voeg elk object uit de objectmodellen toe in de "lijst met objecten" Let op dat de beschrijvingen niet de relatie tussen de objecten duiden, maar louter wat objecten "los bekeken" doen. Dus niet: InstelControl stuurt een signaal naar .. Maar Instelcontrol is de "dirigent" van de usecase "Instellen" (meteen link toevoegen naar die usecase).``
+## ESP32s3
+# Object beschrijving: object model ESP32-S3 Super Mini
 
-| Object Naam   | Stereotype | Beschrijving                                                    |
-| ------------- | ---------- | --------------------------------------------------------------- |
-| InstelControl | Control    | "Dirigent" van de use case "Instellen" (zie use case Instellen) |
-| Display       | Boundary   | Stuurt display hardware aan.                                    |
-| etc..         |            |                                                                 |
+| Objectnaam | Stereotype | Beschrijving |
+| :--- | :--- | :--- |
+| RobotControl | control | "Dirigent" van use case UC-S3-00 Robot besturen (zie use case beschrijving). Voert na elkaar Initialiseren, Balanceren en Balansverlies afhandelen uit, voert bij een fout Fouttoestand afhandelen uit, en geeft iedere nieuwe fase door. Ontvangt de metingen van de Mpu6050 en geeft ze door aan de control die op dat moment wordt uitgevoerd. |
+| InitControl | control | "Dirigent" van use case UC-S3-01 Initialiseren (zie use case beschrijving). Wordt uitgevoerd door RobotControl. Maakt sensor, motoruitgangen en ESP-NOW gereed en bepaalt het nulpunt zodra de robot lang genoeg stilstaat. |
+| BalansControl | control | "Dirigent" van use case UC-S3-02 Balanceren (zie use case beschrijving). Wordt uitgevoerd door RobotControl. Verwerkt iedere meting tot een correctie voor de motoren en stelt een balansverlies vast. |
+| BalansverliesControl | control | "Dirigent" van use case UC-S3-03 Balansverlies afhandelen (zie use case beschrijving). Wordt uitgevoerd door RobotControl. Stopt de motoren, verhoogt de valteller en wacht tot de robot weer rechtop en stil staat. |
+| FoutControl | control | "Dirigent" van use case UC-S3-05 Fouttoestand afhandelen (zie use case beschrijving). Wordt uitgevoerd door RobotControl. Zet de motoren veilig op nul en markeert de balansinformatie als ongeldig. |
+| VerstuurControl | control | "Dirigent" van use case UC-S3-04 Versturen (zie use case beschrijving). Draait parallel aan RobotControl en verstuurt periodiek, of bij een nieuwe fase of valteller, een bericht naar de CYD. |
+| Mpu6050 | boundary | Stuurt de MPU6050-hardware aan en meldt iedere regelperiode een nieuwe accelerometer- en gyroscoopmeting. |
+| MotorDriver | boundary | Stuurt via de ZK5AD-h-brug de linker- en rechter-TT130-motor aan (richting en snelheid). |
+| EspNowZender | boundary | Proxy naar de CYD ESP32: configureert de ESP-NOW-verbinding en verstuurt berichten. |
+| RobotFase | entity | Bevat de fase waarin de robot zich bevindt: KALIBREREN, BALANCEREN, BALANSVERLIES of FOUT. |
+| Sessie | entity | Bevat het sessie-ID en de valteller. Deze data wordt als pakket naar de CYD verstuurd. |
+| BalansData | entity | Bevat de actuele balanswaarde, de bewegingsrichting en of deze gegevens geldig zijn. |
+| BalansFilter | — | Combineert accelerometer- en gyroscoopmetingen tot een balanswaarde en bewaart het nulpunt. |
+| PidRegelaar | — | Berekent met de PID-parameters een begrensd correctiecommando uit de afwijking ten opzichte van het nulpunt. |
 
-### Taakstructurering
 
-``leg uit wat het doel is van taakstructurering en hoe de deelstappen (sub-hoofdstukken) samen dat doel reliseren``
+# Klassediagrammen
+Zie [klassendiagram](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/class-diagrams/v5(Laatste-versie))
+## CYD
 
-#### Taaksoort en deadline
+![alt text](<../02-modelling/class-diagrams/v5(Laatste-versie)/klassediagrammen_robot_v5-Klassediagram CYD ESP32.drawio.png>)
 
-`` Maak een tabel die per object taaksoort, deadline, periode en prioriteit weergeeft. Belangrijk: Deadline is zo lang mogelijk waarbij het nog net geen irritatie oplevert. Deadline <= Periode, Prioriteit is omgekeerd evenredig met deadline ``
+## esp s3 mini
+![alt text](<../02-modelling/class-diagrams/v5(Laatste-versie)/klassediagrammen_robot_v5-Klassediagram ESP32-S3 Super Mini.drawio.png>)
 
-| Object Naam   | Taaksoort     | Periode | Deadline | Prioriteit |
-| ------------- | ------------- | ------- | -------- | ---------- |
-| InstelControl | Demand Driven |         | 30ms     | 1          |
-| PlusKnop      | Periodiek     | 60ms    | 60ms     | 2          |
-| etc..         |               |         |          |            |
 
-#### Taken samenvoegen
 
-`` Maak een tabel waarin je laat zien welke objecten een eigen taak hebben en van welke de taken worden samenvoegd in een enkele "Taak". Noem in het laatste geval het object (bijvoorbeeld een handler) dat eigenaar wordt van die Taak als eerste.``
+# STD's
 
-| Taak Naam  | Object Naam                            | Taaksoort     | Periode | Deadline | Prioriteit |
-| ---------- | -------------------------------------- | ------------- | ------- | -------- | ---------- |
-| InstelTaak | InstelControl                          | Demand Driven |         | 30ms     | 1          |
-| ButtonTaak | <u>ButtonHandler</u> PlusKnop, MinKnop | Periodiek     | 60ms    | 60ms     | 2          |
-| etc..      |                                        |               |         |          |            |
+## CYD
+Zie [STD-CYD](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/state-transition-diagrams/ESP32%20CYD)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32 CYD/CYD-STD-Display.drawio.png>)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32 CYD/CYD-STD-ScoreControl.drawio.png>)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32 CYD/CYD-STD-TonenControl.drawio.png>)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32 CYD/CYD-STD-Touchscreen.drawio.png>)
 
-### Klassediagrammen
 
-`` Ontwerp, uitgaande van de objectmodellen de bijbehorende klassediagrammen. Vergroot eventueel in latere verbeteringsronden de herbruikbaarheid en het gebruiksgemak van de klassen door het toepassen van geschikte Design Patterns of templating. Voeg de klassen ook toe in de Requirements Traceability diagrammen zodat duidelijk is welke requirements de klasse adresseert``
-
-### STD's
-
-``Ontwerp voor elke Taak de STD van de bijbehorende klasse(n), indien van toepassing vanuit activity diagram of usecase beschrijving, protocol of anderszins. Belangrijk: alle toestanden moeten gerepresenteerd worden in het diagram. Code zonder toestanden en zonder directe invloed op de flow tussen de toestanden kunnen gerepresenteerd worden door calls naar helper-functies. Vergeet niet bovenaan een geschikte STD-interface toe te voegen``
-
-## Realisatie
-
-``leg uit waarin de realisatie zich onderscheidt van het ontwerp, en noem kort de rollen van de subhoofdstukken``
-
-### Fysieke View
-
-``Ontwerp de fysieke decompositie (een SysML Bdd). (de functionele decompositie biedt daarvoor meestal goede aanknopingspunten). Verduidelijk fysieke compositie-relaties middels "Constraints" (NB: dat zijn in dit geval gekwantificeerde ontwerpkeuzes die zowel uit de eerdere constraints als de niet-functionele requirements bestaan.``
-
-### Code
-
-``Ontwerp vanuit de STD's de bijbehorende code. Geef waar nodig additionele toelichting. Voeg per STD een link toe naar de betreffende code in de team repo. Voeg ook links naar de overige code toe``
-
-### Unit Tests
-
-``Voeg in dit hoofdstuk sub-hoofdstukken toe met Unit Tests, elk bestaande uit een Testplan, een link naar de testcode, een samenvatting van de bevindingen van de meest recente uitvoer van die test en een link naar een bestand met die meest recente test-output.``
-
-### Integratie Tests
-
-``Voeg in dit hoofdstuk sub-hoofdstukken toe met Integratie Tests, elk bestaande uit een Testplan, een link naar de testcode, een samenvatting van de bevindingen van de meest recente uitvoer van die test en een link naar een bestand met die meest recente test-output. Belangrijke integratie-tests zijn uiteraard ook de tests van het complete product. Hoe goed doet het product wat het moet doen?``
-
-``Verder zou je in dit hoofdstuk Realisatie ook subhoofdstukken kunnen opnemen met : beslissingstabellen, waarin gemaakte realisatiekeuzes worden verantwoord, Failure Mode Effect Analyses, en andere realisatie gerelateerde overwegingen.``
+## esp s3 mini
+Zie [STD-esp32s3](https://github.com/morsal6/Self-Balancing-Robot/tree/main/docs/02-modelling/state-transition-diagrams/ESP32-S3%20Super%20Mini)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32-S3 Super Mini/ESP32s3STD-BalansControlverwerkMeting(meting).drawio.png>)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32-S3 Super Mini/ESP32s3STD-BalansverliesControlverwerkMeting(meting).drawio.png>)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32-S3 Super Mini/ESP32s3STD-InitControlverwerkMeting(meting).drawio.png>)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32-S3 Super Mini/ESP32s3STD-Mpu6050.drawio.png>)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32-S3 Super Mini/ESP32s3STD-RobotControl.drawio.png>)
+![alt text](<../02-modelling/state-transition-diagrams/ESP32-S3 Super Mini/ESP32s3STD-VerstuurControl.drawio.png>)
 
 ### Eindresultaat
 
 `` Nog eens op een rijtje de behaalde functionaliteiten en de performance. ``
 
-## Conclusie en Advies
-
-`` Reflecteer op in welke mate de aanvankelijk opgestelde requirements daadwerkelijk zijn behaald. Geef goed onderbouwde aanbevelingen t.a.v. mogelijke toekomstige doorontwikkeling.`` 
-
-## Appendices
-
-### Appendix 1: Mindmaps
-
-`` Bijvoorbeeld voorafgaand aan het maken van het systeem context diagram is een mooi moment om met zijn allen een mindmap te maken die een samenhang duidt van alles wat je als team maar kunt bedenken in relatie tot het systeem. ``
-
-### Appendix 2: Gespreksverslagen
-
-#### Notities bij Kickoff-Meeting
-
-``... etc``
-
-### Appendix 3: Upgradeonderzoeksverslagen
-
-``zet hier een lijst met links naar de upgradeonderzoeksverslagen. Licht het toe met wat tekst met de belangrijkste samenvatttingen ervan.``
-
-### Appendix 4: Referenties
-
-`` lijst 3rd party materiaal waar naar verwezen is. Boeken, site-links.``
-
-`` Verder mogelijk nog appendices over: de geschiedenis van de ontwikkeling van het product in grote lijnen (inclusief inmiddels afgeschoten tussenproducten), over het opzetten van de ontwikkelomgevingen, over hoe te debuggen. Houdt het bij samenvattende dingen. Lange teksten (zoals testuitvoer) niet in de appendices maar via links naar bestanden opnemen.``
